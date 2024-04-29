@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_car_sim/common/provider.dart';
 import 'package:mobile_car_sim/models/client.dart';
-import 'package:network_info_plus/network_info_plus.dart';
-// import 'package:wifi_info_plugin_plus/wifi_info_plugin_plus.dart';
+// import 'package:network_info_plus/network_info_plus.dart';
+import 'package:wifi_info_plugin_plus/wifi_info_plugin_plus.dart';
 
 class WifiDataCard extends ConsumerStatefulWidget {
   const WifiDataCard({super.key});
@@ -33,15 +33,15 @@ class _WifiDataCardState extends ConsumerState<WifiDataCard> {
 
   Future<void> _asyncInit() async {
     if (Platform.isAndroid) {
-      // final network = await WifiInfoPlugin.wifiDetails;
+      final network = await WifiInfoPlugin.wifiDetails;
 
-      // _ip = network?.ipAddress;
-      // _gateway = network?.routerIp;
+      _ip = network?.ipAddress;
+      _gateway = network?.routerIp;
     } else {
-      final network = NetworkInfo();
+      // final network = NetworkInfo();
 
-      _ip = await network.getWifiIP();
-      _gateway = await network.getWifiGatewayIP();
+      // _ip = await network.getWifiIP();
+      // _gateway = await network.getWifiGatewayIP();
     }
   }
 

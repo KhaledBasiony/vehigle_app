@@ -93,7 +93,7 @@ class _WifiDataCardState extends ConsumerState<WifiDataCard> {
                       children: [
                         Text('Current Ip: $_ip\n'
                             'Gateway Ip: $_gateway'),
-                        Text('Connection: $_status'),
+                        Text('Connection:\n$_status'),
                       ],
                     ),
                   ),

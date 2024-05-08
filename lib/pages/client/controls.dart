@@ -39,15 +39,15 @@ class _ControlsCardState extends ConsumerState<ControlsCard> {
   }
 
   void _onForward() {
-    Client.singleton().send([110]);
+    Client.singleton().send('f'.codeUnits);
   }
 
   void _onBackwards() {
-    Client.singleton().send([223]);
+    Client.singleton().send('r'.codeUnits);
   }
 
   void _onBrakes() {
-    Client.singleton().send([0]);
+    Client.singleton().send('b'.codeUnits);
   }
 
   void _onLeft() {
@@ -65,7 +65,6 @@ class _ControlsCardState extends ConsumerState<ControlsCard> {
   }
 
   void _onSend() {
-    // print(_commandText.text);
     Client.singleton().send(_commandText.text.codeUnits);
   }
 
@@ -98,7 +97,7 @@ class _ControlsCardState extends ConsumerState<ControlsCard> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 HoldDownButton(callback: _onLeft, text: 'Left'),
-                ElevatedButton(onPressed: _onBrakes, child: const Text('Brakes')),
+                HoldDownButton(callback: _onBrakes, text: 'Brakes'),
                 HoldDownButton(callback: _onRight, text: 'Right'),
               ],
             ),

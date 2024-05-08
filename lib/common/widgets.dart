@@ -1,42 +1,59 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:mobile_car_sim/common/db.dart';
 
 class HoldDownButton extends StatefulWidget {
   const HoldDownButton({
     super.key,
     required this.callback,
     required this.text,
-    this.duration = const Duration(milliseconds: 500),
+    this.duration,
   });
 
   final void Function() callback;
   final String text;
-  final Duration duration;
+  final Duration? duration;
 
   @override
   State<HoldDownButton> createState() => _HoldDownButtonState();
 }
 
 class _HoldDownButtonState extends State<HoldDownButton> {
-  bool _isTapped = false;
+  late Duration _duration;
+  Timer? _timer;
 
-  void _recurse() async {
-    widget.callback();
-    print('Called');
-    await Future.delayed(widget.duration);
-    print(_isTapped);
+  @override
+  void initState() {
+    super.initState();
+    _initDuration();
+  }
+
+  void _initDuration() {
+    _duration = widget.duration ?? Duration(milliseconds: Db().read(holdDownDelayKey));
   }
 
   void _onTapDown(_) {
-    _isTapped = true;
+    _timer?.cancel();
+
     widget.callback();
-    print(_isTapped);
+    _timer = Timer.periodic(
+      _duration,
+      (_) {
+        widget.callback();
+      },
+    );
   }
 
   void _onTapUp([dynamic _]) {
-    _isTapped = false;
-    print(_isTapped);
+    _timer?.cancel();
+    _initDuration();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   @override
@@ -65,3 +82,41 @@ class _HoldDownButtonState extends State<HoldDownButton> {
     );
   }
 }
+
+class RoundedTextField extends StatelessWidget {
+  const RoundedTextField({
+    super.key,
+    required this.text,
+    required this.controller,
+    InputType? inputType,
+  }) : inputType = inputType ?? InputType.strings;
+
+  final String text;
+  final TextEditingController controller;
+  final InputType inputType;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: controller,
+      inputFormatters: [
+        if (inputType == InputType.integers) FilteringTextInputFormatter.allow(r'[0-9]'),
+        if (inputType == InputType.decimals) FilteringTextInputFormatter.allow(r'[0-9\.]'),
+      ],
+      validator: switch (inputType) {
+        InputType.integers => (value) => int.tryParse(value ?? '') == null ? 'Enter a valid Integer' : null,
+        InputType.decimals => (value) => num.tryParse(value ?? '') == null ? 'Enter a valid Decimal' : null,
+        _ => (_) => null,
+      },
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      decoration: InputDecoration(
+        border: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(48)),
+        ),
+        labelText: text,
+      ),
+    );
+  }
+}
+
+enum InputType { integers, decimals, strings }

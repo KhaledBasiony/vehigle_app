@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_car_sim/common/provider.dart';
 import 'package:mobile_car_sim/models/client.dart';
@@ -18,7 +17,6 @@ class _ReceiverCardState extends ConsumerState<ReceiverCard> {
   void _onMessage(String text) {
     if (_isReceiving) {
       setState(() {
-        print(text);
         _messages.insert(0, _Message(text: text));
       });
     }

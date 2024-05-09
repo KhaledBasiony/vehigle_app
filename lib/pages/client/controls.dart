@@ -85,8 +85,15 @@ class _ControlsCardState extends ConsumerState<ControlsCard> {
         padding: const EdgeInsets.all(8.0),
         child: Column(
           children: [
-            Center(
-              child: Text('Steering Angle: $_angle'),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const _OnOffSwitch(),
+                  Text('Steering Angle: $_angle'),
+                ],
+              ),
             ),
             Center(
               child: GestureDetector(
@@ -118,6 +125,52 @@ class _ControlsCardState extends ConsumerState<ControlsCard> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _OnOffSwitch extends StatefulWidget {
+  const _OnOffSwitch();
+
+  @override
+  State<_OnOffSwitch> createState() => __OnOffSwitchState();
+}
+
+class __OnOffSwitchState extends State<_OnOffSwitch> {
+  bool _value = true;
+  @override
+  Widget build(BuildContext context) {
+    final switchButton = Switch(
+      value: _value,
+      onChanged: (newValue) {
+        setState(() {
+          _value = newValue;
+        });
+      },
+    );
+
+    const offIcon = Icon(
+      Icons.warning_amber_rounded,
+      key: ValueKey('Off-Icon'),
+      color: Colors.yellow,
+    );
+    const onIcon = Icon(
+      Icons.check_circle_rounded,
+      key: ValueKey('On-Icon'),
+      color: Colors.green,
+    );
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          child: switchButton,
+        ),
+        AnimatedSwitcher(
+          duration: Durations.short3,
+          child: _value ? onIcon : offIcon,
+        ),
+      ],
     );
   }
 }

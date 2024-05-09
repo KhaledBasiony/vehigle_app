@@ -31,7 +31,7 @@ class _HoldDownButtonState extends State<HoldDownButton> {
   }
 
   void _initDuration() {
-    _duration = widget.duration ?? Duration(milliseconds: Db().read(holdDownDelayKey));
+    _duration = widget.duration ?? Duration(milliseconds: Db().read(holdDownDelayKey) ?? 500);
   }
 
   void _onTapDown(_) {

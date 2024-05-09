@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_car_sim/common/db.dart';
 import 'package:mobile_car_sim/pages/client/receiver.dart';
 import 'package:mobile_car_sim/pages/client/controls.dart';
-import 'package:mobile_car_sim/pages/client/connection.dart';
+import 'package:mobile_car_sim/pages/connections/wifi.dart';
 import 'package:mobile_car_sim/pages/drawing/drawing.dart';
 import 'package:mobile_car_sim/pages/settings.dart';
 
@@ -46,7 +46,7 @@ class MainPage extends StatelessWidget {
           ),
         ),
         appBar: AppBar(
-          title: const Text('Vehigle Peripheral Sim'),
+          title: const Text('Vehigle Sim'),
           centerTitle: true,
           leading: Builder(builder: (context) {
             return IconButton(

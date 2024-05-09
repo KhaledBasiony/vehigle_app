@@ -32,7 +32,7 @@ class SettingsEditor extends StatelessWidget {
 }
 
 class _HoldDownDuration extends ConsumerStatefulWidget {
-  const _HoldDownDuration({super.key});
+  const _HoldDownDuration();
 
   @override
   ConsumerState<_HoldDownDuration> createState() => __HoldDownDurationState();

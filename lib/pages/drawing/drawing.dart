@@ -1,9 +1,44 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_car_sim/models/car.dart';
+
+class MapCanvas extends StatelessWidget {
+  const MapCanvas({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    const edgeInsets = EdgeInsets.all(16.0);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final canvasSide = min(constraints.maxHeight, constraints.maxWidth);
+        MapModel.instance.scale = canvasSide / (CarModel.maxSensorReading * 2 + CarModel.instance.width);
+        return Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: canvasSide,
+              maxWidth: canvasSide,
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              margin: edgeInsets,
+              padding: edgeInsets,
+              child: const MapDrawer(),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
 
 class MapDrawer extends ConsumerStatefulWidget {
   const MapDrawer({super.key});
@@ -21,17 +56,23 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
     super.initState();
     rng = Random(DateTime.now().millisecondsSinceEpoch);
     _timer = Timer.periodic(const Duration(milliseconds: 250), (timer) {
-      CarModel.instance.readingsHistory = [
-        SensorReadings(
-          frontLeft: rng.nextDouble() * 100,
-          frontCenter: rng.nextDouble() * 100,
-          frontRight: rng.nextDouble() * 100,
-          backLeft: rng.nextDouble() * 100,
-          backCenter: rng.nextDouble() * 100,
-          backRight: rng.nextDouble() * 100,
+      CarModel.instance.readingsHistory.addFirst(
+        SensorOffsets.fromReadings(
+          frontLeft: rng.nextDouble() * CarModel.maxSensorReading,
+          frontCenter: rng.nextDouble() * CarModel.maxSensorReading,
+          frontRight: rng.nextDouble() * CarModel.maxSensorReading,
+          backLeft: rng.nextDouble() * CarModel.maxSensorReading,
+          backCenter: rng.nextDouble() * CarModel.maxSensorReading,
+          backRight: rng.nextDouble() * CarModel.maxSensorReading,
+          right: rng.nextDouble() * CarModel.maxSensorReading,
+          left: rng.nextDouble() * CarModel.maxSensorReading,
         ),
-        ...CarModel.instance.readingsHistory.take(CarModel.instance.readingsHistory.length - 1),
-      ];
+      );
+
+      if (CarModel.instance.readingsHistory.length > CarModel.maxHistory) {
+        CarModel.instance.readingsHistory.removeLast();
+      }
+
       setState(() {});
     });
   }
@@ -42,24 +83,20 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
     super.dispose();
   }
 
+  void _moveForward(int dist) {
+    CarModel.instance.readingsHistory = Queue.of(
+      CarModel.instance.readingsHistory.map(
+        (e) => e.translate(0, dist.toDouble()),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final mapCanvas = CustomPaint(
+    return CustomPaint(
       painter: CarPainter(),
       foregroundPainter: MapPainter(),
       size: Size.infinite,
-    );
-    const edgeInsets = EdgeInsets.all(16.0);
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: Theme.of(context).colorScheme.primary,
-        ),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      margin: edgeInsets,
-      padding: edgeInsets,
-      child: mapCanvas,
     );
   }
 }
@@ -98,12 +135,19 @@ class MapPainter extends CustomPainter {
     paint.color = baseColor;
 
     // Iterate over history elements.
-    for (int i = 0; i < CarModel.instance.readingsHistory.length; i++) {
-      final reading = CarModel.instance.readingsHistory[i];
+
+    for (final element in CarModel.instance.readingsHistory.indexed) {
+      final i = element.$1;
+      final reading = element.$2;
       paint.color = baseColor.withAlpha(255 - (i / CarModel.instance.readingsHistory.length * 255).round());
 
       // Iterate over UltraSonic values in a single reading element.
-      for (var readingLocation in reading.toOffsets(MapModel.instance.center).toList()) {
+      for (var readingLocation in reading
+          .translate(
+            MapModel.instance.center.dx,
+            MapModel.instance.center.dy,
+          )
+          .toList()) {
         canvas.drawCircle(
           readingLocation,
           2 * MapModel.instance.scale,

@@ -71,7 +71,7 @@ class MainPage extends StatelessWidget {
                 child: TabBarView(
                   children: [
                     _ClientWidget(),
-                    MapDrawer(),
+                    MapCanvas(),
                   ],
                 ),
               ),

@@ -1,95 +1,101 @@
+import 'dart:collection';
 import 'dart:math';
 import 'dart:ui';
-
-const _maxHistory = 100;
 
 class CarModel {
   CarModel._();
   static CarModel? _instance;
   static CarModel get instance => _instance ??= CarModel._();
 
+  static const maxHistory = 50;
+  static const maxSensorReading = 100;
+
   double width = 20;
   double height = 40;
-  SensorReadings readings = SensorReadings();
-  List<SensorReadings> readingsHistory = List.generate(_maxHistory, (index) {
-    return SensorReadings();
-  });
-}
-
-class SensorReadings {
-  SensorReadings({
-    this.frontLeft = 0,
-    this.frontCenter = 0,
-    this.frontRight = 0,
-    this.backLeft = 0,
-    this.backCenter = 0,
-    this.backRight = 0,
-  });
-
-  final double frontLeft;
-  final double frontRight;
-  final double frontCenter;
-
-  final double backLeft;
-  final double backRight;
-  final double backCenter;
-
-  SensorOffsets toOffsets(Offset center) {
-    return SensorOffsets(
-      frontLeft: Offset(
-        center.dx - CarModel.instance.width / 2 * MapModel.instance.scale - frontLeft / sqrt2 * MapModel.instance.scale,
-        center.dy -
-            CarModel.instance.height / 2 * MapModel.instance.scale -
-            frontLeft / sqrt2 * MapModel.instance.scale,
-      ),
-      frontCenter: Offset(
-        center.dx,
-        center.dy - CarModel.instance.height / 2 * MapModel.instance.scale - frontCenter * MapModel.instance.scale,
-      ),
-      frontRight: Offset(
-        center.dx +
-            CarModel.instance.width / 2 * MapModel.instance.scale +
-            frontRight / sqrt2 * MapModel.instance.scale,
-        center.dy -
-            CarModel.instance.height / 2 * MapModel.instance.scale -
-            frontRight / sqrt2 * MapModel.instance.scale,
-      ),
-      backLeft: Offset(
-        center.dx - CarModel.instance.width / 2 * MapModel.instance.scale - backLeft / sqrt2 * MapModel.instance.scale,
-        center.dy + CarModel.instance.height / 2 * MapModel.instance.scale + backLeft / sqrt2 * MapModel.instance.scale,
-      ),
-      backCenter: Offset(
-        center.dx,
-        center.dy + CarModel.instance.height / 2 * MapModel.instance.scale + backCenter * MapModel.instance.scale,
-      ),
-      backRight: Offset(
-        center.dx + CarModel.instance.width / 2 * MapModel.instance.scale + backRight / sqrt2 * MapModel.instance.scale,
-        center.dy +
-            CarModel.instance.height / 2 * MapModel.instance.scale +
-            backRight / sqrt2 * MapModel.instance.scale,
-      ),
-    );
-  }
+  Queue<SensorOffsets> readingsHistory = Queue();
 }
 
 class SensorOffsets {
   SensorOffsets({
-    this.frontLeft = Offset.zero,
-    this.frontCenter = Offset.zero,
     this.frontRight = Offset.zero,
-    this.backLeft = Offset.zero,
-    this.backCenter = Offset.zero,
+    this.frontCenter = Offset.zero,
+    this.frontLeft = Offset.zero,
     this.backRight = Offset.zero,
+    this.backCenter = Offset.zero,
+    this.backLeft = Offset.zero,
+    this.right = Offset.zero,
+    this.left = Offset.zero,
   });
-  final Offset frontLeft;
+
+  factory SensorOffsets.fromReadings({
+    required double frontRight,
+    required double frontCenter,
+    required double frontLeft,
+    required double backRight,
+    required double backCenter,
+    required double backLeft,
+    required double right,
+    required double left,
+  }) {
+    return SensorOffsets(
+      frontRight: Offset(
+        (CarModel.instance.width / 2 + frontRight / sqrt2) * MapModel.instance.scale,
+        (-CarModel.instance.height / 2 - frontRight / sqrt2) * MapModel.instance.scale,
+      ),
+      frontCenter: Offset(
+        0,
+        (-CarModel.instance.height / 2 - frontCenter) * MapModel.instance.scale,
+      ),
+      frontLeft: Offset(
+        (-CarModel.instance.width / 2 - frontLeft / sqrt2) * MapModel.instance.scale,
+        (-CarModel.instance.height / 2 - frontLeft / sqrt2) * MapModel.instance.scale,
+      ),
+      backRight: Offset(
+        (CarModel.instance.width / 2 + backRight / sqrt2) * MapModel.instance.scale,
+        (CarModel.instance.height / 2 + backRight / sqrt2) * MapModel.instance.scale,
+      ),
+      backCenter: Offset(
+        0,
+        (CarModel.instance.height / 2 + backCenter) * MapModel.instance.scale,
+      ),
+      backLeft: Offset(
+        (-CarModel.instance.width / 2 - backLeft / sqrt2) * MapModel.instance.scale,
+        (CarModel.instance.height / 2 + backLeft / sqrt2) * MapModel.instance.scale,
+      ),
+      right: Offset(
+        (CarModel.instance.width / 2 + right) * MapModel.instance.scale,
+        0,
+      ),
+      left: Offset(
+        (-CarModel.instance.width / 2 - left) * MapModel.instance.scale,
+        0,
+      ),
+    );
+  }
+
+  SensorOffsets translate(double translateX, double translateY) => SensorOffsets(
+        frontRight: frontRight.translate(translateX, translateY),
+        frontCenter: frontCenter.translate(translateX, translateY),
+        frontLeft: frontLeft.translate(translateX, translateY),
+        backRight: backRight.translate(translateX, translateY),
+        backCenter: backCenter.translate(translateX, translateY),
+        backLeft: backLeft.translate(translateX, translateY),
+        right: right.translate(translateX, translateY),
+        left: left.translate(translateX, translateY),
+      );
+
   final Offset frontRight;
   final Offset frontCenter;
+  final Offset frontLeft;
 
-  final Offset backLeft;
   final Offset backRight;
   final Offset backCenter;
+  final Offset backLeft;
 
-  List<Offset> toList() => [frontLeft, frontCenter, frontRight, backLeft, backCenter, backRight];
+  final Offset right;
+  final Offset left;
+
+  List<Offset> toList() => [frontRight, frontCenter, frontLeft, backRight, backCenter, backLeft, right, left];
 }
 
 class MapModel {

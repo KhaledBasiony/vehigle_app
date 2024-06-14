@@ -12,10 +12,20 @@ class MapCanvas extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const edgeInsets = EdgeInsets.all(16.0);
+    const borderWidth = 1.0;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final canvasSide = min(constraints.maxHeight, constraints.maxWidth);
-        MapModel.instance.scale = canvasSide / (CarModel.maxSensorReading * 2 + CarModel.instance.width);
+
+        // this will be used as both a padding and a margin
+        final sidePadding = canvasSide == constraints.maxHeight
+            ? edgeInsets.bottom + edgeInsets.top
+            : edgeInsets.left + edgeInsets.right;
+
+        final netCanvasSide = canvasSide - 2 * sidePadding - 2 * borderWidth;
+        MapModel.instance.scale = netCanvasSide / (CarModel.maxSensorReading * 2 + CarModel.instance.height);
+
         return Center(
           child: ConstrainedBox(
             constraints: BoxConstraints(
@@ -26,6 +36,7 @@ class MapCanvas extends StatelessWidget {
               decoration: BoxDecoration(
                 border: Border.all(
                   color: Theme.of(context).colorScheme.primary,
+                  width: borderWidth,
                 ),
                 borderRadius: BorderRadius.circular(20),
               ),

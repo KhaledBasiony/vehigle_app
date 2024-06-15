@@ -29,7 +29,7 @@ class _ControlsCardState extends ConsumerState<ControlsCard> {
   }
 
   void _assignTextTimer() => _textTimer = Timer.periodic(const Duration(milliseconds: 50), (_) {
-        _onSend();
+        _send();
       });
 
   @override
@@ -38,33 +38,33 @@ class _ControlsCardState extends ConsumerState<ControlsCard> {
     super.dispose();
   }
 
-  void _onForward() {
+  void _moveForward() {
     Client.singleton().send('f'.codeUnits);
   }
 
-  void _onBackwards() {
+  void _moveBackwards() {
     Client.singleton().send('r'.codeUnits);
   }
 
-  void _onBrakes() {
+  void _brake() {
     Client.singleton().send('b'.codeUnits);
   }
 
-  void _onLeft() {
+  void _moveLeft() {
     setState(() {
       _angle = max(_angle - 1, -40);
     });
     Client.singleton().send([_angle + 40]);
   }
 
-  void _onRight() {
+  void _moveRight() {
     setState(() {
       _angle = min(_angle + 1, 40);
     });
     Client.singleton().send([_angle + 40]);
   }
 
-  void _onSend() {
+  void _send() {
     Client.singleton().send(_commandText.text.codeUnits);
   }
 
@@ -95,21 +95,12 @@ class _ControlsCardState extends ConsumerState<ControlsCard> {
                 ],
               ),
             ),
-            Center(
-              child: GestureDetector(
-                child: HoldDownButton(callback: _onForward, text: 'Forward'),
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                HoldDownButton(callback: _onLeft, text: 'Left'),
-                HoldDownButton(callback: _onBrakes, text: 'Brakes'),
-                HoldDownButton(callback: _onRight, text: 'Right'),
-              ],
-            ),
-            Center(
-              child: HoldDownButton(callback: _onBackwards, text: 'Backwards'),
+            _MovementButtons(
+              onForward: _moveForward,
+              onBackwards: _moveBackwards,
+              onLeft: _moveLeft,
+              onRight: _moveRight,
+              onBrakes: _brake,
             ),
             Row(
               children: [
@@ -119,12 +110,73 @@ class _ControlsCardState extends ConsumerState<ControlsCard> {
                   ),
                 ),
                 Switch(value: _isTransmittingText, onChanged: _onSwitchChanged),
-                IconButton(onPressed: _onSend, icon: const Icon(Icons.send_outlined))
+                IconButton(onPressed: _send, icon: const Icon(Icons.send_outlined))
               ],
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _MovementButtons extends StatelessWidget {
+  const _MovementButtons({
+    required this.onForward,
+    required this.onLeft,
+    required this.onRight,
+    required this.onBrakes,
+    required this.onBackwards,
+  });
+
+  final void Function() onForward;
+  final void Function() onLeft;
+  final void Function() onRight;
+  final void Function() onBackwards;
+  final void Function() onBrakes;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Center(
+          child: GestureDetector(
+            child: HoldDownButton(
+              callback: onForward,
+              text: 'Forward',
+              child: const Icon(Icons.keyboard_arrow_up_rounded),
+            ),
+          ),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            HoldDownButton(
+              callback: onLeft,
+              text: 'Left',
+              child: const Icon(Icons.keyboard_arrow_left_rounded),
+            ),
+            HoldDownButton(
+              callback: onBrakes,
+              text: 'Brakes',
+              // child: const Icon(Icons.warning_amber_rounded),
+            ),
+            HoldDownButton(
+              callback: onRight,
+              text: 'Right',
+              child: const Icon(Icons.keyboard_arrow_right_rounded),
+            ),
+          ],
+        ),
+        Center(
+          child: HoldDownButton(
+            callback: onBackwards,
+            text: 'Backwards',
+            child: const Icon(Icons.keyboard_arrow_down_rounded),
+          ),
+        )
+      ],
     );
   }
 }

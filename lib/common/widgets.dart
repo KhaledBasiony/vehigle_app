@@ -8,12 +8,14 @@ class HoldDownButton extends StatefulWidget {
   const HoldDownButton({
     super.key,
     required this.callback,
-    required this.text,
+    this.text,
+    this.child,
     this.duration,
-  });
+  }) : assert(child != null || text != null);
 
   final void Function() callback;
-  final String text;
+  final String? text;
+  final Widget? child;
   final Duration? duration;
 
   @override
@@ -70,12 +72,13 @@ class _HoldDownButtonState extends State<HoldDownButton> {
           onTapCancel: _onTapUp,
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 28),
-            child: Text(
-              widget.text,
-              style: textStyle?.copyWith(
-                color: primaryColor,
-              ),
-            ),
+            child: widget.child ??
+                Text(
+                  widget.text!,
+                  style: textStyle?.copyWith(
+                    color: primaryColor,
+                  ),
+                ),
           ),
         ),
       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_car_sim/common/db.dart';
 import 'package:mobile_car_sim/pages/client/receiver.dart';
@@ -61,27 +62,38 @@ class MainPage extends StatelessWidget {
             );
           }),
         ),
-        body: const DefaultTabController(
+        body: DefaultTabController(
           length: 2,
           child: Column(
             children: [
-              TabBar(
+              const TabBar(
                 tabs: [
                   Tab(text: 'Client'),
                   Tab(text: 'Map'),
                 ],
               ),
               Expanded(
-                child: TabBarView(
-                  children: [
-                    _ClientWidget(),
-                    MapCanvas(),
-                  ],
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return Flex(
+                      direction: constraints.maxWidth < 1000 ? Axis.vertical : Axis.horizontal,
+                      children: const [
+                        Expanded(
+                          child: TabBarView(
+                            children: [
+                              _ClientWidget(),
+                              MapCanvas(),
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: ControlsCard(),
+                        ),
+                      ],
+                    );
+                  },
                 ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(8.0),
-                child: ControlsCard(),
               ),
             ],
           ),

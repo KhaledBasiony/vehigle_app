@@ -81,47 +81,52 @@ class _ControlsCardState extends ConsumerState<ControlsCard> {
       return const SizedBox.shrink();
     }
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const _OnOffSwitch(),
-                  Text('Steering Angle: $_angle'),
-                ],
-              ),
-            ),
-            Row(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 640),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
               children: [
-                Expanded(
-                    child: _CarState(
-                  onSend: (text) => _send(text.codeUnits),
-                )),
-                _MovementButtons(
-                  onForward: _moveForward,
-                  onBackwards: _moveBackwards,
-                  onLeft: _moveLeft,
-                  onRight: _moveRight,
-                  onBrakes: _brake,
-                ),
-              ],
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _commandText,
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const _OnOffSwitch(),
+                      Text('Steering Angle: $_angle'),
+                    ],
                   ),
                 ),
-                Switch(value: _isTransmittingText, onChanged: _onSwitchChanged),
-                IconButton(onPressed: _send, icon: const Icon(Icons.send_outlined))
+                Row(
+                  children: [
+                    Expanded(
+                        child: _CarState(
+                      onSend: (text) => _send(text.codeUnits),
+                    )),
+                    _MovementButtons(
+                      onForward: _moveForward,
+                      onBackwards: _moveBackwards,
+                      onLeft: _moveLeft,
+                      onRight: _moveRight,
+                      onBrakes: _brake,
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _commandText,
+                      ),
+                    ),
+                    Switch(value: _isTransmittingText, onChanged: _onSwitchChanged),
+                    IconButton(onPressed: _send, icon: const Icon(Icons.send_outlined))
+                  ],
+                ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );

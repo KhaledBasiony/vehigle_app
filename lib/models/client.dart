@@ -23,9 +23,9 @@ class Client {
     });
   }
 
-  static Future<Client> connect(String ip, int port) async {
+  static Future<Client> connect(String ip, int port, [int? sourcePort]) async {
     if (_client != null) return _client!;
-    final socket = await Socket.connect(ip, port, sourcePort: port);
+    final socket = await Socket.connect(ip, port, sourcePort: sourcePort ?? port);
     return _client = Client._(socket: socket);
   }
 

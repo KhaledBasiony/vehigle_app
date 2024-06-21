@@ -2,8 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile_car_sim/common/db.dart';
 import 'package:mobile_car_sim/common/provider.dart';
 import 'package:mobile_car_sim/models/client.dart';
+import 'package:mobile_car_sim/models/simulator.dart';
 // import 'package:network_info_plus/network_info_plus.dart';
 import 'package:wifi_info_plugin_plus/wifi_info_plugin_plus.dart';
 
@@ -19,6 +21,7 @@ class _WifiDataCardState extends ConsumerState<WifiDataCard> {
   String? _gateway;
   String? _status;
   static const port = 4000;
+  static const sourcePort = 4040;
 
   late Future _waiter;
 
@@ -32,6 +35,12 @@ class _WifiDataCardState extends ConsumerState<WifiDataCard> {
   void _updateStatus() => _status = Client.isConnected ? 'Connected' : 'Disconnected';
 
   Future<void> _asyncInit() async {
+    final useSim = Db().read<bool>(useSimulator);
+    if (useSim ?? false) {
+      await MockServer.singleton().up();
+      _gateway = MockServer.singleton().ip;
+      return;
+    }
     if (Platform.isAndroid) {
       final network = await WifiInfoPlugin.wifiDetails;
 
@@ -45,8 +54,9 @@ class _WifiDataCardState extends ConsumerState<WifiDataCard> {
     }
   }
 
-  void _refresh() {
+  void _refresh() async {
     if (Client.isConnected) Client.singleton().disconnect();
+    await MockServer.singleton().down();
     ref.read(isConnectedProvider.notifier).state = false;
     setState(() {
       _updateStatus();
@@ -56,7 +66,7 @@ class _WifiDataCardState extends ConsumerState<WifiDataCard> {
 
   void _connect() async {
     try {
-      await Client.connect(_gateway!, port);
+      await Client.connect(_gateway!, port, sourcePort);
       ref.read(isConnectedProvider.notifier).state = true;
     } catch (e) {
       if (mounted) {

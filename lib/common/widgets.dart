@@ -71,7 +71,7 @@ class _HoldDownButtonState extends State<HoldDownButton> {
           onTap: _onTapUp,
           onTapCancel: _onTapUp,
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 28),
+            padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
             child: widget.child ??
                 Text(
                   widget.text!,

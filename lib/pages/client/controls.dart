@@ -64,8 +64,8 @@ class _ControlsCardState extends ConsumerState<ControlsCard> {
     Client.singleton().send([_angle + 40]);
   }
 
-  void _send() {
-    Client.singleton().send(_commandText.text.codeUnits);
+  void _send([List<int>? bytes]) {
+    Client.singleton().send(bytes ?? _commandText.text.codeUnits);
   }
 
   void _onSwitchChanged(bool newVale) {
@@ -95,12 +95,20 @@ class _ControlsCardState extends ConsumerState<ControlsCard> {
                 ],
               ),
             ),
-            _MovementButtons(
-              onForward: _moveForward,
-              onBackwards: _moveBackwards,
-              onLeft: _moveLeft,
-              onRight: _moveRight,
-              onBrakes: _brake,
+            Row(
+              children: [
+                Expanded(
+                    child: _CarState(
+                  onSend: (text) => _send(text.codeUnits),
+                )),
+                _MovementButtons(
+                  onForward: _moveForward,
+                  onBackwards: _moveBackwards,
+                  onLeft: _moveLeft,
+                  onRight: _moveRight,
+                  onBrakes: _brake,
+                ),
+              ],
             ),
             Row(
               children: [
@@ -116,6 +124,61 @@ class _ControlsCardState extends ConsumerState<ControlsCard> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _CarState extends StatefulWidget {
+  const _CarState({
+    required this.onSend,
+  });
+
+  final void Function(String text) onSend;
+
+  @override
+  State<_CarState> createState() => _CarStateState();
+}
+
+class _CarStateState extends State<_CarState> {
+  _CarStates _currentState = _CarStates.searching;
+  @override
+  Widget build(BuildContext context) {
+    Future.delayed(const Duration(seconds: 4), () {
+      if (mounted) {
+        setState(() {
+          _currentState = _CarStates.waitingAlgoSelection;
+        });
+      }
+    });
+    final currentStateIndicator = Text(_currentState.name);
+
+    final selectAlgoButton = DropdownButtonFormField(
+      decoration: const InputDecoration(labelText: 'Select Algorithm'),
+      items: _ParkingAlgo.values
+          .map(
+            (e) => DropdownMenuItem(
+              value: e,
+              child: Text(e.name),
+            ),
+          )
+          .toList(),
+      onChanged: (newValue) {
+        widget.onSend(newValue!.name);
+        setState(() {
+          _currentState = _CarStates.parking;
+        });
+      },
+    );
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Text('Current State:'),
+        currentStateIndicator,
+        Visibility(
+          visible: _currentState != _CarStates.searching,
+          child: selectAlgoButton,
+        ),
+      ],
     );
   }
 }
@@ -159,7 +222,7 @@ class _MovementButtons extends StatelessWidget {
             ),
             HoldDownButton(
               callback: onBrakes,
-              text: 'Brakes',
+              text: 'Stop',
               // child: const Icon(Icons.warning_amber_rounded),
             ),
             HoldDownButton(
@@ -225,4 +288,15 @@ class __OnOffSwitchState extends State<_OnOffSwitch> {
       ],
     );
   }
+}
+
+enum _CarStates {
+  searching,
+  waitingAlgoSelection,
+  parking,
+}
+
+enum _ParkingAlgo {
+  circleLineCircle,
+  twoCircles,
 }

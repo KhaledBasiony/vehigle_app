@@ -88,7 +88,10 @@ class MainPage extends StatelessWidget {
                         ),
                         Padding(
                           padding: EdgeInsets.all(8.0),
-                          child: ControlsCard(),
+                          child: FocusScope(
+                            autofocus: true,
+                            child: ControlsCard(),
+                          ),
                         ),
                       ],
                     );

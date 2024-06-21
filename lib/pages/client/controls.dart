@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_car_sim/common/provider.dart';
 import 'package:mobile_car_sim/models/client.dart';
@@ -80,51 +81,79 @@ class _ControlsCardState extends ConsumerState<ControlsCard> {
     if (!ref.watch(isConnectedProvider)) {
       return const SizedBox.shrink();
     }
-    return Card(
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 640),
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+    final movementButtonsKey = GlobalKey<_MovementButtonsState>();
+    return CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.arrowUp): () {
+          movementButtonsKey.currentState?.widget.onForward;
+        },
+        const SingleActivator(LogicalKeyboardKey.arrowDown): () {
+          movementButtonsKey.currentState?.widget.onBackwards;
+        },
+        const SingleActivator(
+          LogicalKeyboardKey.arrowLeft,
+          shift: true,
+        ): () {
+          movementButtonsKey.currentState?.widget.onLeft;
+        },
+        const SingleActivator(
+          LogicalKeyboardKey.arrowRight,
+          shift: true,
+        ): () {
+          movementButtonsKey.currentState?.widget.onRight;
+        },
+        const SingleActivator(LogicalKeyboardKey.space): () {
+          movementButtonsKey.currentState?.widget.onBrakes;
+        },
+      },
+      child: Card(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 640),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const _OnOffSwitch(),
+                        Text('Steering Angle: $_angle'),
+                      ],
+                    ),
+                  ),
+                  Row(
                     children: [
-                      const _OnOffSwitch(),
-                      Text('Steering Angle: $_angle'),
+                      Expanded(
+                          child: _CarState(
+                        onSend: (text) => _send(text.codeUnits),
+                      )),
+                      _MovementButtons(
+                        key: movementButtonsKey,
+                        onForward: _moveForward,
+                        onBackwards: _moveBackwards,
+                        onLeft: _moveLeft,
+                        onRight: _moveRight,
+                        onBrakes: _brake,
+                      ),
                     ],
                   ),
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                        child: _CarState(
-                      onSend: (text) => _send(text.codeUnits),
-                    )),
-                    _MovementButtons(
-                      onForward: _moveForward,
-                      onBackwards: _moveBackwards,
-                      onLeft: _moveLeft,
-                      onRight: _moveRight,
-                      onBrakes: _brake,
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _commandText,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _commandText,
+                        ),
                       ),
-                    ),
-                    Switch(value: _isTransmittingText, onChanged: _onSwitchChanged),
-                    IconButton(onPressed: _send, icon: const Icon(Icons.send_outlined))
-                  ],
-                ),
-              ],
+                      Switch(value: _isTransmittingText, onChanged: _onSwitchChanged),
+                      IconButton(onPressed: _send, icon: const Icon(Icons.send_outlined))
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -188,8 +217,9 @@ class _CarStateState extends State<_CarState> {
   }
 }
 
-class _MovementButtons extends StatelessWidget {
+class _MovementButtons extends StatefulWidget {
   const _MovementButtons({
+    super.key,
     required this.onForward,
     required this.onLeft,
     required this.onRight,
@@ -204,6 +234,11 @@ class _MovementButtons extends StatelessWidget {
   final void Function() onBrakes;
 
   @override
+  State<_MovementButtons> createState() => _MovementButtonsState();
+}
+
+class _MovementButtonsState extends State<_MovementButtons> {
+  @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -211,7 +246,7 @@ class _MovementButtons extends StatelessWidget {
         Center(
           child: GestureDetector(
             child: HoldDownButton(
-              callback: onForward,
+              callback: widget.onForward,
               text: 'Forward',
               child: const Icon(Icons.keyboard_arrow_up_rounded),
             ),
@@ -221,17 +256,17 @@ class _MovementButtons extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             HoldDownButton(
-              callback: onLeft,
+              callback: widget.onLeft,
               text: 'Left',
               child: const Icon(Icons.keyboard_arrow_left_rounded),
             ),
             HoldDownButton(
-              callback: onBrakes,
+              callback: widget.onBrakes,
               text: 'Stop',
               // child: const Icon(Icons.warning_amber_rounded),
             ),
             HoldDownButton(
-              callback: onRight,
+              callback: widget.onRight,
               text: 'Right',
               child: const Icon(Icons.keyboard_arrow_right_rounded),
             ),
@@ -239,7 +274,7 @@ class _MovementButtons extends StatelessWidget {
         ),
         Center(
           child: HoldDownButton(
-            callback: onBackwards,
+            callback: widget.onBackwards,
             text: 'Backwards',
             child: const Icon(Icons.keyboard_arrow_down_rounded),
           ),

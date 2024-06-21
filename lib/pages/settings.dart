@@ -25,6 +25,8 @@ class SettingsEditor extends StatelessWidget {
             ),
           ),
           _HoldDownDuration(),
+          SizedBox(height: 10),
+          _ConnectionSimulator(),
         ],
       ),
     );
@@ -49,7 +51,7 @@ class __HoldDownDurationState extends ConsumerState<_HoldDownDuration> {
     _initValue = (Db().read<int>(holdDownDelayKey) ?? 500).toString();
     _delayController = TextEditingController(text: _initValue);
     _delayController.addListener(() {
-      ref.read(_valueChangedProvider.notifier).state = _delayController.text != _initValue;
+      ref.read(_delayValueChangedProvider.notifier).state = _delayController.text != _initValue;
     });
   }
 
@@ -61,7 +63,7 @@ class __HoldDownDurationState extends ConsumerState<_HoldDownDuration> {
 
   void _save() async {
     await Db().write(holdDownDelayKey, int.parse(_delayController.text));
-    ref.read(_valueChangedProvider.notifier).state = false;
+    ref.read(_delayValueChangedProvider.notifier).state = false;
     _initValue = _delayController.text;
   }
 
@@ -77,7 +79,7 @@ class __HoldDownDurationState extends ConsumerState<_HoldDownDuration> {
         ),
         IconButton(
           color: Colors.greenAccent,
-          onPressed: ref.watch(_valueChangedProvider) ? _save : null,
+          onPressed: ref.watch(_delayValueChangedProvider) ? _save : null,
           icon: const Icon(Icons.check_rounded),
         ),
       ],
@@ -85,6 +87,60 @@ class __HoldDownDurationState extends ConsumerState<_HoldDownDuration> {
   }
 }
 
-final _valueChangedProvider = StateProvider<bool>((ref) {
+class _ConnectionSimulator extends ConsumerStatefulWidget {
+  const _ConnectionSimulator();
+
+  @override
+  ConsumerState<_ConnectionSimulator> createState() => __ConnectionSimulatorState();
+}
+
+class __ConnectionSimulatorState extends ConsumerState<_ConnectionSimulator> {
+  late bool _initValue;
+  late bool _currentValue;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _initValue = _currentValue = Db().read<bool>(useSimulator) ?? false;
+  }
+
+  void _save() async {
+    await Db().write(useSimulator, _currentValue);
+    ref.read(_simulatorValueChangedProvider.notifier).state = false;
+    _initValue = _currentValue;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: SwitchListTile(
+            title: const Text('Use Simulator'),
+            value: _currentValue,
+            onChanged: (value) {
+              setState(() {
+                _currentValue = value;
+              });
+              ref.read(_simulatorValueChangedProvider.notifier).state = value != _initValue;
+            },
+          ),
+        ),
+        IconButton(
+          color: Colors.greenAccent,
+          onPressed: ref.watch(_simulatorValueChangedProvider) ? _save : null,
+          icon: const Icon(Icons.check_rounded),
+        ),
+      ],
+    );
+  }
+}
+
+final _delayValueChangedProvider = StateProvider<bool>((ref) {
+  return false;
+});
+
+final _simulatorValueChangedProvider = StateProvider<bool>((ref) {
   return false;
 });

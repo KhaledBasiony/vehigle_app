@@ -35,3 +35,4 @@ class Db {
 }
 
 const holdDownDelayKey = 'HoldDownDelay';
+const useSimulator = 'UseSimulator';

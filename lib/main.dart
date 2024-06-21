@@ -39,10 +39,14 @@ class MainPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        drawer: const Drawer(
-          child: Padding(
-            padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 8.0),
-            child: SettingsEditor(),
+        drawer: const Padding(
+          padding: EdgeInsetsDirectional.only(end: 50.0),
+          child: Drawer(
+            width: 500,
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 8.0),
+              child: SettingsEditor(),
+            ),
           ),
         ),
         appBar: AppBar(

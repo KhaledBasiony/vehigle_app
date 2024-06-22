@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile_car_sim/common/provider.dart';
 import 'package:mobile_car_sim/models/car.dart';
 
 class MapCanvas extends StatelessWidget {
@@ -104,6 +106,12 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(messagesProvider, (previous, next) {
+      final encoderReading = jsonDecode(next.last.text)['ENC'] as int;
+      if (encoderReading != 0) {
+        _moveForward(encoderReading);
+      }
+    });
     return CustomPaint(
       painter: CarPainter(),
       foregroundPainter: MapPainter(),

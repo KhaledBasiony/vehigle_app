@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_car_sim/common/provider.dart';
-import 'package:mobile_car_sim/models/client.dart';
 
 class ReceiverCard extends ConsumerStatefulWidget {
   const ReceiverCard({super.key});
@@ -11,16 +10,8 @@ class ReceiverCard extends ConsumerStatefulWidget {
 }
 
 class _ReceiverCardState extends ConsumerState<ReceiverCard> {
-  final List<_Message> _messages = [];
+  final List<Message> _messages = [];
   bool _isReceiving = false;
-
-  void _onMessage(String text) {
-    if (_isReceiving) {
-      setState(() {
-        _messages.insert(0, _Message(text: text));
-      });
-    }
-  }
 
   void _clear() {
     setState(() {
@@ -31,9 +22,13 @@ class _ReceiverCardState extends ConsumerState<ReceiverCard> {
   @override
   Widget build(BuildContext context) {
     ref.listen(
-      isConnectedProvider,
+      messagesProvider,
       (previous, next) {
-        if (next) Client.singleton().addCallback(_onMessage);
+        if (_isReceiving) {
+          setState(() {
+            _messages.insert(0, next.last);
+          });
+        }
       },
     );
     return ConstrainedBox(
@@ -46,7 +41,7 @@ class _ReceiverCardState extends ConsumerState<ReceiverCard> {
               children: [
                 Expanded(
                   child: SwitchListTile(
-                    title: const Text('Toggle Receiving'),
+                    title: const Text('Toggle Logs'),
                     controlAffinity: ListTileControlAffinity.leading,
                     value: _isReceiving,
                     onChanged: (newValue) {
@@ -80,13 +75,4 @@ class _ReceiverCardState extends ConsumerState<ReceiverCard> {
       ),
     );
   }
-}
-
-class _Message {
-  _Message({
-    required this.text,
-    DateTime? receivedAt,
-  }) : receivedAt = receivedAt ?? DateTime.now();
-  final String text;
-  final DateTime receivedAt;
 }

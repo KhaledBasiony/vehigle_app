@@ -16,11 +16,14 @@ class Client {
   static bool get isConnected => _client != null;
 
   final Socket _socket;
+  bool _callbackRegistered = false;
 
   void addCallback(void Function(String text) callback) {
+    if (_callbackRegistered) return;
     _socket.listen((event) {
       callback(utf8.decode(event));
     });
+    _callbackRegistered = true;
   }
 
   static Future<Client> connect(String ip, int port, [int? sourcePort]) async {
@@ -46,5 +49,6 @@ class Client {
   void disconnect() async {
     _socket.destroy();
     _client = null;
+    _callbackRegistered = false;
   }
 }

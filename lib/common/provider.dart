@@ -2,13 +2,16 @@ import 'dart:math';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class LogsNotifier extends StateNotifier<List<String>> {
-  LogsNotifier() : super([]);
+class MessageNotifier extends Notifier<List<Message>> {
+  @override
+  List<Message> build() {
+    return [];
+  }
 
   void add(String message) {
     state = [
       ...state.getRange(max(state.length - 100, 0), state.length),
-      message,
+      Message(text: message),
     ];
   }
 
@@ -46,12 +49,19 @@ enum CarStates {
 
 final carStatesProvider = NotifierProvider<CarStateNotifier, CarStates>(CarStateNotifier.new);
 
-final logsProvider = StateNotifierProvider<LogsNotifier, List<String>>((ref) {
-  return LogsNotifier();
-});
+final messagesProvider = NotifierProvider<MessageNotifier, List<Message>>(MessageNotifier.new);
 
 final isRunningProvider = StateNotifierProvider<RunningStateNotifier, bool>((ref) {
   return RunningStateNotifier();
 });
 
 final isConnectedProvider = StateProvider((ref) => false);
+
+class Message {
+  Message({
+    required this.text,
+    DateTime? receivedAt,
+  }) : receivedAt = receivedAt ?? DateTime.now();
+  final String text;
+  final DateTime receivedAt;
+}

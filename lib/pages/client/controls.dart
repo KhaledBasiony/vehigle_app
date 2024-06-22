@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -271,15 +272,37 @@ class _MovementButtonsState extends State<_MovementButtons> {
   }
 }
 
-class _OnOffSwitch extends StatefulWidget {
+class _OnOffSwitch extends ConsumerStatefulWidget {
   const _OnOffSwitch();
 
   @override
-  State<_OnOffSwitch> createState() => __OnOffSwitchState();
+  ConsumerState<_OnOffSwitch> createState() => __OnOffSwitchState();
 }
 
-class __OnOffSwitchState extends State<_OnOffSwitch> {
-  bool _value = true;
+class __OnOffSwitchState extends ConsumerState<_OnOffSwitch> {
+  bool _value = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    Client.singleton().addCallback(_receiveMessage);
+  }
+
+  // receiving here because this widget is always visible while connected,
+  // therefore `ref` is always available.
+  void _receiveMessage(String text) {
+    if (!_value) return;
+
+    final lastReading = RegExp('.*({.*?})').firstMatch(text)?.group(1);
+    if (lastReading == null) return; // <== should never happen
+
+    ref.read(messagesProvider.notifier).add(lastReading);
+
+    final data = jsonDecode(lastReading) as Map<String, dynamic>;
+    ref.read(carStatesProvider.notifier).update(CarStates.values.elementAt(data['PHS'] as int));
+  }
+
   @override
   Widget build(BuildContext context) {
     final switchButton = Switch(
@@ -301,6 +324,15 @@ class __OnOffSwitchState extends State<_OnOffSwitch> {
       key: ValueKey('On-Icon'),
       color: Colors.green,
     );
+
+    const onText = Text(
+      'Receiving',
+      key: ValueKey('On-Text'),
+    );
+    const offText = Text(
+      'NOT Receiving',
+      key: ValueKey('Off-Text'),
+    );
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -312,6 +344,8 @@ class __OnOffSwitchState extends State<_OnOffSwitch> {
           duration: Durations.short3,
           child: _value ? onIcon : offIcon,
         ),
+        const SizedBox(width: 4),
+        _value ? onText : offText,
       ],
     );
   }

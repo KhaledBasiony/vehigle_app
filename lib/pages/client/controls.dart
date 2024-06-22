@@ -5,9 +5,11 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile_car_sim/common/db.dart';
 import 'package:mobile_car_sim/common/provider.dart';
 import 'package:mobile_car_sim/models/client.dart';
 import 'package:mobile_car_sim/common/widgets.dart';
+import 'package:mobile_car_sim/models/simulator.dart';
 
 class ControlsCard extends ConsumerStatefulWidget {
   const ControlsCard({super.key});
@@ -153,6 +155,7 @@ class _ControlsCardState extends ConsumerState<ControlsCard> {
                       IconButton(onPressed: _send, icon: const Icon(Icons.send_outlined))
                     ],
                   ),
+                  if (Db().read<bool>(useSimulator) ?? false) const _ReadingsSetter(),
                 ],
               ),
             ),
@@ -354,4 +357,60 @@ class __OnOffSwitchState extends ConsumerState<_OnOffSwitch> {
 enum _ParkingAlgo {
   circleLineCircle,
   twoCircles,
+}
+
+class _ReadingsSetter extends StatefulWidget {
+  const _ReadingsSetter({super.key});
+
+  @override
+  State<_ReadingsSetter> createState() => __ReadingsSetterState();
+}
+
+class __ReadingsSetterState extends State<_ReadingsSetter> {
+  late final TextEditingController _stateController;
+  late final TextEditingController _encoderController;
+
+  @override
+  void initState() {
+    super.initState();
+    _stateController = TextEditingController(text: '0');
+    _encoderController = TextEditingController(text: '0');
+  }
+
+  @override
+  void dispose() {
+    _stateController.dispose();
+    _encoderController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final stateSetter = TextFormField(
+      decoration: const InputDecoration(labelText: 'Car State'),
+      controller: _stateController,
+      maxLength: 1,
+      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[012]'))],
+      onChanged: (value) {
+        MockServer.singleton().carState = int.tryParse(value) ?? 0;
+      },
+    );
+
+    final encoder = TextFormField(
+      decoration: const InputDecoration(labelText: 'Encoder Reading'),
+      controller: _encoderController,
+      maxLength: 1,
+      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+      onChanged: (value) {
+        MockServer.singleton().encoder = int.tryParse(value) ?? 0;
+      },
+    );
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        stateSetter,
+        encoder,
+      ],
+    );
+  }
 }

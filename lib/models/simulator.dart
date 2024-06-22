@@ -49,9 +49,9 @@ class MockServer {
         'RF': 0,
         'RB': 0,
         'RC': 0,
-        'ENC': 0,
+        'ENC': encoder,
         'CMPS': 0,
-        'PHS': 0,
+        'PHS': carState,
         'ALG': 0,
         'PRM_A': 0,
         'PRM_B': 0,
@@ -66,4 +66,8 @@ class MockServer {
   late Timer _timer;
   final String ip;
   final int port;
+
+  // Readings variables.
+  int carState = 0;
+  int encoder = 0;
 }

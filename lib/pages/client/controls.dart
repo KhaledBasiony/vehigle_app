@@ -162,7 +162,7 @@ class _ControlsCardState extends ConsumerState<ControlsCard> {
   }
 }
 
-class _CarState extends StatefulWidget {
+class _CarState extends ConsumerWidget {
   const _CarState({
     required this.onSend,
   });
@@ -170,21 +170,9 @@ class _CarState extends StatefulWidget {
   final void Function(String text) onSend;
 
   @override
-  State<_CarState> createState() => _CarStateState();
-}
-
-class _CarStateState extends State<_CarState> {
-  _CarStates _currentState = _CarStates.searching;
-  @override
-  Widget build(BuildContext context) {
-    Future.delayed(const Duration(seconds: 4), () {
-      if (mounted) {
-        setState(() {
-          _currentState = _CarStates.waitingAlgoSelection;
-        });
-      }
-    });
-    final currentStateIndicator = Text(_currentState.name);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentState = ref.watch(carStatesProvider);
+    final currentStateIndicator = Text(currentState.disp);
 
     final selectAlgoButton = DropdownButtonFormField(
       decoration: const InputDecoration(labelText: 'Select Algorithm'),
@@ -197,10 +185,9 @@ class _CarStateState extends State<_CarState> {
           )
           .toList(),
       onChanged: (newValue) {
-        widget.onSend(newValue!.name);
-        setState(() {
-          _currentState = _CarStates.parking;
-        });
+        onSend(newValue!.name);
+
+        ref.read(carStatesProvider.notifier).update(CarStates.parking);
       },
     );
     return Column(
@@ -209,7 +196,7 @@ class _CarStateState extends State<_CarState> {
         const Text('Current State:'),
         currentStateIndicator,
         Visibility(
-          visible: _currentState != _CarStates.searching,
+          visible: currentState != CarStates.searching,
           child: selectAlgoButton,
         ),
       ],
@@ -328,12 +315,6 @@ class __OnOffSwitchState extends State<_OnOffSwitch> {
       ],
     );
   }
-}
-
-enum _CarStates {
-  searching,
-  waitingAlgoSelection,
-  parking,
 }
 
 enum _ParkingAlgo {

@@ -25,6 +25,27 @@ class RunningStateNotifier extends StateNotifier<bool> {
   }
 }
 
+class CarStateNotifier extends Notifier<CarStates> {
+  @override
+  CarStates build() {
+    return CarStates.searching;
+  }
+
+  void update(CarStates newValue) => state = newValue;
+}
+
+enum CarStates {
+  searching('Searching..'),
+  waitingAlgoSelection('Waiting Algo Selection!'),
+  parking('Parking');
+
+  const CarStates(this.disp);
+
+  final String disp;
+}
+
+final carStatesProvider = NotifierProvider<CarStateNotifier, CarStates>(CarStateNotifier.new);
+
 final logsProvider = StateNotifierProvider<LogsNotifier, List<String>>((ref) {
   return LogsNotifier();
 });

@@ -25,6 +25,9 @@ class MockServer {
     _socket?.listen(
       (event) async {
         clientSocket = event;
+        clientSocket!.listen((event) {
+          print('Received: ${utf8.decode(event)}');
+        });
       },
       cancelOnError: true,
     );

@@ -133,7 +133,11 @@ class _CarState extends ConsumerWidget {
           )
           .toList(),
       onChanged: (newValue) {
-        onSend(newValue!.name);
+        if (newValue == null) return;
+        onSend(switch (newValue) {
+          _ParkingAlgo.circleLineCircle => 'c',
+          _ParkingAlgo.twoCircles => 'l',
+        });
 
         ref.read(carStatesProvider.notifier).update(CarStates.parking);
       },
@@ -321,6 +325,7 @@ class __ReadingsSetterState extends ConsumerState<_ReadingsSetter> {
       maxLength: 1,
       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[012]'))],
       onChanged: (value) {
+        if (value.isEmpty) return;
         MockServer.instance.carState.base = int.tryParse(value) ?? 0;
       },
     );

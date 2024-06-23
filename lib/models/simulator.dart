@@ -104,7 +104,7 @@ class MockServer {
     lb.oneTime = 0.0;
     rb.oneTime = 0.0;
 
-    compass.base = compass._base + _steeringAngle;
+    compass.base = compass._base + _steeringAngle * 0.1;
     encoder.base = encoder._base + _encoderStep;
   }
 

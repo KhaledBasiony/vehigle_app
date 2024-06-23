@@ -69,5 +69,5 @@ class MockServer {
 
   // Readings variables.
   int carState = 0;
-  int encoder = 0;
+  num encoder = 0;
 }

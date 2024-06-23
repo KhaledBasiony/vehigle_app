@@ -96,7 +96,7 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
     super.dispose();
   }
 
-  void _moveForward(int dist) {
+  void _moveForward(num dist) {
     CarModel.instance.readingsHistory = Queue.of(
       CarModel.instance.readingsHistory.map(
         (e) => e.translate(0, dist.toDouble()),
@@ -107,7 +107,7 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
   @override
   Widget build(BuildContext context) {
     ref.listen(messagesProvider, (previous, next) {
-      final encoderReading = jsonDecode(next.last.text)['ENC'] as int;
+      final encoderReading = jsonDecode(next.last.text)['ENC'] as num;
       if (encoderReading != 0) {
         _moveForward(encoderReading);
       }

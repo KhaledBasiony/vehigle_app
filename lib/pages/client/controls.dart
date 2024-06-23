@@ -399,10 +399,9 @@ class __ReadingsSetterState extends State<_ReadingsSetter> {
     final encoder = TextFormField(
       decoration: const InputDecoration(labelText: 'Encoder Reading'),
       controller: _encoderController,
-      maxLength: 1,
-      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9\.-]'))],
       onChanged: (value) {
-        MockServer.singleton().encoder = int.tryParse(value) ?? 0;
+        MockServer.singleton().encoder = num.tryParse(value) ?? 0;
       },
     );
     return Column(

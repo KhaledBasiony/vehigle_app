@@ -83,9 +83,11 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
       // car is moving on an arc.
       final radius = dist / angle;
       final rotationCenter = Offset(
-        radius,
-        -CarModel.instance.centerToAxle * MapModel.instance.scale,
+        radius * MapModel.instance.scale,
+        CarModel.instance.centerToAxle * MapModel.instance.scale,
       );
+
+      CarModel.instance.latestRotationCenter = rotationCenter;
       CarModel.instance.readingsHistory = Queue.of(
         CarModel.instance.readingsHistory.map(
           (sensorReadings) => sensorReadings.rotateAbout(rotationCenter, angle),
@@ -191,6 +193,15 @@ class MapPainter extends CustomPainter {
         );
       }
     }
+    paint.color = Colors.amber;
+    canvas.drawCircle(
+      CarModel.instance.latestRotationCenter.translate(
+        MapModel.instance.center.dx,
+        MapModel.instance.center.dy,
+      ),
+      2 * MapModel.instance.scale,
+      paint,
+    );
     return;
   }
 

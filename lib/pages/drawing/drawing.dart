@@ -76,7 +76,7 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
       // only move car linearly front or backwards.
       CarModel.instance.readingsHistory = Queue.of(
         CarModel.instance.readingsHistory.map(
-          (sensorReadings) => sensorReadings.translate(0, dist.toDouble()),
+          (sensorReadings) => sensorReadings.translate(0, dist.toDouble() * MapModel.instance.scale),
         ),
       );
     } else {

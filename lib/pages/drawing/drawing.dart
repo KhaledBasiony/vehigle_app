@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:math';
@@ -28,6 +27,7 @@ class MapCanvas extends StatelessWidget {
         final netCanvasSide = canvasSide - 2 * sidePadding - 2 * borderWidth;
         MapModel.instance.scale = netCanvasSide / (CarModel.maxSensorReading * 2 + CarModel.instance.height);
 
+        final borderRadius = BorderRadius.circular(20);
         return Center(
           child: ConstrainedBox(
             constraints: BoxConstraints(
@@ -40,11 +40,14 @@ class MapCanvas extends StatelessWidget {
                   color: Theme.of(context).colorScheme.primary,
                   width: borderWidth,
                 ),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: borderRadius,
               ),
               margin: edgeInsets,
               padding: edgeInsets,
-              child: const MapDrawer(),
+              child: ClipRRect(
+                borderRadius: borderRadius,
+                child: const MapDrawer(),
+              ),
             ),
           ),
         );
@@ -61,41 +64,6 @@ class MapDrawer extends ConsumerStatefulWidget {
 }
 
 class _MapDrawerState extends ConsumerState<MapDrawer> {
-  late Random rng;
-  Timer? _timer;
-
-  @override
-  void initState() {
-    super.initState();
-    rng = Random(DateTime.now().millisecondsSinceEpoch);
-    _timer = Timer.periodic(const Duration(milliseconds: 250), (timer) {
-      CarModel.instance.readingsHistory.addFirst(
-        SensorOffsets.fromReadings(
-          frontLeft: rng.nextDouble() * CarModel.maxSensorReading,
-          frontCenter: rng.nextDouble() * CarModel.maxSensorReading,
-          frontRight: rng.nextDouble() * CarModel.maxSensorReading,
-          backLeft: rng.nextDouble() * CarModel.maxSensorReading,
-          backCenter: rng.nextDouble() * CarModel.maxSensorReading,
-          backRight: rng.nextDouble() * CarModel.maxSensorReading,
-          right: rng.nextDouble() * CarModel.maxSensorReading,
-          left: rng.nextDouble() * CarModel.maxSensorReading,
-        ),
-      );
-
-      if (CarModel.instance.readingsHistory.length > CarModel.maxHistory) {
-        CarModel.instance.readingsHistory.removeLast();
-      }
-
-      setState(() {});
-    });
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
   void _moveForward(num dist) {
     CarModel.instance.readingsHistory = Queue.of(
       CarModel.instance.readingsHistory.map(
@@ -107,10 +75,30 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
   @override
   Widget build(BuildContext context) {
     ref.listen(messagesProvider, (previous, next) {
-      final encoderReading = jsonDecode(next.last.text)['ENC'] as num;
+      final readings = jsonDecode(next.last.text) as Map<String, dynamic>;
+      CarModel.instance.readingsHistory.addFirst(
+        SensorOffsets.fromReadings(
+          frontLeft: readings['LF'] * CarModel.maxSensorReading,
+          frontCenter: readings['CF'] * CarModel.maxSensorReading,
+          frontRight: readings['RF'] * CarModel.maxSensorReading,
+          backLeft: readings['LB'] * CarModel.maxSensorReading,
+          backCenter: readings['CB'] * CarModel.maxSensorReading,
+          backRight: readings['RB'] * CarModel.maxSensorReading,
+          right: readings['RC'] * CarModel.maxSensorReading,
+          left: readings['LC'] * CarModel.maxSensorReading,
+        ),
+      );
+
+      if (CarModel.instance.readingsHistory.length > CarModel.maxHistory) {
+        CarModel.instance.readingsHistory.removeLast();
+      }
+
+      final encoderReading = readings['ENC'] as num;
       if (encoderReading != 0) {
         _moveForward(encoderReading);
       }
+
+      setState(() {});
     });
     return CustomPaint(
       painter: CarPainter(),

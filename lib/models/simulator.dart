@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:mobile_car_sim/common/db.dart';
 
@@ -19,6 +20,7 @@ class MockServer {
   late Timer _timer;
   final String ip;
   final int port;
+  final rng = Random();
 
   // Readings variables.
   final cf = _Reading<num>(base: 0);
@@ -90,6 +92,14 @@ class MockServer {
         'PRM_D': paramD.value,
       })),
     );
+    cf.oneTime = rng.nextDouble();
+    cb.oneTime = rng.nextDouble();
+    lc.oneTime = rng.nextDouble();
+    rc.oneTime = rng.nextDouble();
+    lf.oneTime = rng.nextDouble();
+    rf.oneTime = rng.nextDouble();
+    lb.oneTime = rng.nextDouble();
+    rb.oneTime = rng.nextDouble();
   }
 
   void handleCommand(List<int> command) {

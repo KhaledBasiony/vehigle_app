@@ -70,7 +70,7 @@ class __DelayDurationState extends ConsumerState<_DelayDuration> {
   void initState() {
     super.initState();
 
-    _initValue = (Db().read<int>(widget.dbKey) ?? 500).toString();
+    _initValue = (Db.instance.read<int>(widget.dbKey) ?? 500).toString();
     _delayController = TextEditingController(text: _initValue);
     _delayController.addListener(() {
       ref.read(widget.isChangedProvider.notifier).state = _delayController.text != _initValue;
@@ -84,7 +84,7 @@ class __DelayDurationState extends ConsumerState<_DelayDuration> {
   }
 
   void _save() async {
-    await Db().write(widget.dbKey, int.parse(_delayController.text));
+    await Db.instance.write(widget.dbKey, int.parse(_delayController.text));
     ref.read(widget.isChangedProvider.notifier).state = false;
     _initValue = _delayController.text;
   }
@@ -124,11 +124,11 @@ class __ConnectionSimulatorState extends ConsumerState<_ConnectionSimulator> {
   void initState() {
     super.initState();
 
-    _initValue = _currentValue = Db().read<bool>(useSimulator) ?? false;
+    _initValue = _currentValue = Db.instance.read<bool>(useSimulator) ?? false;
   }
 
   void _save() async {
-    await Db().write(useSimulator, _currentValue);
+    await Db.instance.write(useSimulator, _currentValue);
     ref.read(_useSimulatorChangedProvider.notifier).state = false;
     _initValue = _currentValue;
   }

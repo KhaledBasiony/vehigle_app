@@ -12,8 +12,7 @@ class MockServer {
   });
 
   static MockServer? _instance;
-
-  factory MockServer.singleton() => _instance ??= MockServer._();
+  static MockServer get instance => _instance ??= MockServer._();
 
   ServerSocket? _socket;
   Socket? clientSocket;
@@ -45,7 +44,7 @@ class MockServer {
   num _encoderStep = 0;
 
   Future<void> up() async {
-    _timer = Timer.periodic(Duration(milliseconds: Db().read<int>(simulatorReadingsDelay) ?? 50), (timer) {
+    _timer = Timer.periodic(Duration(milliseconds: Db.instance.read<int>(simulatorReadingsDelay) ?? 50), (timer) {
       _sendData();
     });
     if (_socket != null) {

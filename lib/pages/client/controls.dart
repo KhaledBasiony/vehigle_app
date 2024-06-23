@@ -42,7 +42,7 @@ class _ControlsCardState extends ConsumerState<ControlsCard> {
   }
 
   void _send([List<int>? bytes]) {
-    Client.singleton().send(bytes ?? _commandText.text.codeUnits);
+    Client.instance.send(bytes ?? _commandText.text.codeUnits);
   }
 
   void _onSwitchChanged(bool newVale) {
@@ -100,7 +100,7 @@ class _ControlsCardState extends ConsumerState<ControlsCard> {
                     IconButton(onPressed: _send, icon: const Icon(Icons.send_outlined))
                   ],
                 ),
-                if (Db().read<bool>(useSimulator) ?? false) const _ReadingsSetter(),
+                if (Db.instance.read<bool>(useSimulator) ?? false) const _ReadingsSetter(),
               ],
             ),
           ),
@@ -214,7 +214,7 @@ class __OnOffSwitchState extends ConsumerState<_OnOffSwitch> {
   void initState() {
     super.initState();
 
-    Client.singleton().addCallback(_receiveMessage);
+    Client.instance.addCallback(_receiveMessage);
   }
 
   // receiving here because this widget is always visible while connected,
@@ -321,7 +321,7 @@ class __ReadingsSetterState extends ConsumerState<_ReadingsSetter> {
       maxLength: 1,
       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[012]'))],
       onChanged: (value) {
-        MockServer.singleton().carState.base = int.tryParse(value) ?? 0;
+        MockServer.instance.carState.base = int.tryParse(value) ?? 0;
       },
     );
 
@@ -331,7 +331,7 @@ class __ReadingsSetterState extends ConsumerState<_ReadingsSetter> {
       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9\.-]'))],
       onChanged: (value) {
         final step = num.tryParse(value) ?? 0;
-        MockServer.singleton().encoderStep = step;
+        MockServer.instance.encoderStep = step;
         ref.read(encoderStepProvider.notifier).state = step;
       },
     );

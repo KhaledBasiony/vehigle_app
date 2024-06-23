@@ -5,6 +5,7 @@ class Db {
   Db._();
 
   static Db? _instance;
+  static Db get instance => _instance!;
 
   static Future<void> open() async {
     if (_instance != null) return;
@@ -15,8 +16,6 @@ class Db {
         path: await getApplicationSupportDirectory().then((value) => value.path),
       );
   }
-
-  factory Db() => _instance!;
 
   T? read<T>(String key) {
     return _hiveBox!.get(key);

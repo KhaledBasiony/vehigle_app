@@ -15,7 +15,7 @@ class MoveForwardAction extends Action<MoveForwardIntent> {
   @override
   Object? invoke(MoveForwardIntent intent) {
     ref.read(encoderStepProvider.notifier).state += 1;
-    Client.singleton().send('f'.codeUnits);
+    Client.instance.send('f'.codeUnits);
     return null;
   }
 }
@@ -28,7 +28,7 @@ class MoveBackwardsAction extends Action<MoveBackwardsIntent> {
   @override
   Object? invoke(MoveBackwardsIntent intent) {
     ref.read(encoderStepProvider.notifier).state -= 1;
-    Client.singleton().send('r'.codeUnits);
+    Client.instance.send('r'.codeUnits);
     return null;
   }
 }
@@ -41,7 +41,7 @@ class StopAction extends Action<StopIntent> {
   @override
   Object? invoke(StopIntent intent) {
     ref.read(encoderStepProvider.notifier).state = 0;
-    Client.singleton().send('b'.codeUnits);
+    Client.instance.send('b'.codeUnits);
     return null;
   }
 }
@@ -55,7 +55,7 @@ class TurnLeftAction extends Action<TurnLeftIntent> {
   Object? invoke(TurnLeftIntent intent) {
     final angleNotifier = ref.read(wheelAngleProvider.notifier);
     angleNotifier.state = max(angleNotifier.state - 1, -40);
-    Client.singleton().send([angleNotifier.state + 40]);
+    Client.instance.send([angleNotifier.state + 40]);
     return null;
   }
 }
@@ -69,7 +69,7 @@ class TurnRightAction extends Action<TurnRightIntent> {
   Object? invoke(TurnRightIntent intent) {
     final angleNotifier = ref.read(wheelAngleProvider.notifier);
     angleNotifier.state = min(angleNotifier.state + 1, 40);
-    Client.singleton().send([angleNotifier.state + 40]);
+    Client.instance.send([angleNotifier.state + 40]);
     return null;
   }
 }

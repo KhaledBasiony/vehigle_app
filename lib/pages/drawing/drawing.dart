@@ -65,7 +65,6 @@ class MapDrawer extends ConsumerStatefulWidget {
 
 class _MapDrawerState extends ConsumerState<MapDrawer> {
   void _transfromMap(num dist, num angle) {
-    print('$dist, $angle');
     if (angle < -pi || angle > pi) {
       print('Warning! angle must be from -Pi to Pi, received $angle, ignoring');
     }

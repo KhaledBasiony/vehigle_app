@@ -12,6 +12,12 @@ class Client {
   }) : _socket = socket;
 
   static Client? _client;
+  static Client get instance {
+    if (!isConnected) {
+      throw Exception('Must call connect before getting an instance');
+    }
+    return _client!;
+  }
 
   static bool get isConnected => _client != null;
 
@@ -33,13 +39,6 @@ class Client {
       port,
     );
     return _client = Client._(socket: socket);
-  }
-
-  factory Client.singleton() {
-    if (!isConnected) {
-      throw Exception('Must call connect before getting an instance');
-    }
-    return _client!;
   }
 
   void send(List<int> command) {

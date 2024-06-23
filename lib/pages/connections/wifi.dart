@@ -35,10 +35,10 @@ class _WifiDataCardState extends ConsumerState<WifiDataCard> {
   void _updateStatus() => _status = Client.isConnected ? 'Connected' : 'Disconnected';
 
   Future<void> _asyncInit() async {
-    final useSim = Db().read<bool>(useSimulator);
+    final useSim = Db.instance.read<bool>(useSimulator);
     if (useSim ?? false) {
-      await MockServer.singleton().up();
-      _gateway = MockServer.singleton().ip;
+      await MockServer.instance.up();
+      _gateway = MockServer.instance.ip;
       return;
     }
     if (Platform.isAndroid) {
@@ -55,8 +55,8 @@ class _WifiDataCardState extends ConsumerState<WifiDataCard> {
   }
 
   void _refresh() async {
-    if (Client.isConnected) Client.singleton().disconnect();
-    await MockServer.singleton().down();
+    if (Client.isConnected) Client.instance.disconnect();
+    await MockServer.instance.down();
     ref.read(isConnectedProvider.notifier).state = false;
     setState(() {
       _updateStatus();

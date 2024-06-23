@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_car_sim/common/db.dart';
 import 'package:mobile_car_sim/common/provider.dart';
+import 'package:mobile_car_sim/common/shortcuts/actions.dart';
 import 'package:mobile_car_sim/models/client.dart';
 import 'package:mobile_car_sim/common/widgets.dart';
 import 'package:mobile_car_sim/models/simulator.dart';
@@ -22,7 +22,6 @@ class _ControlsCardState extends ConsumerState<ControlsCard> {
   bool _isTransmittingText = false;
   late Timer _textTimer;
   late final TextEditingController _commandText;
-  int _angle = 0;
 
   @override
   void initState() {
@@ -42,32 +41,6 @@ class _ControlsCardState extends ConsumerState<ControlsCard> {
     super.dispose();
   }
 
-  void _moveForward() {
-    Client.singleton().send('f'.codeUnits);
-  }
-
-  void _moveBackwards() {
-    Client.singleton().send('r'.codeUnits);
-  }
-
-  void _brake() {
-    Client.singleton().send('b'.codeUnits);
-  }
-
-  void _moveLeft() {
-    setState(() {
-      _angle = max(_angle - 1, -40);
-    });
-    Client.singleton().send([_angle + 40]);
-  }
-
-  void _moveRight() {
-    setState(() {
-      _angle = min(_angle + 1, 40);
-    });
-    Client.singleton().send([_angle + 40]);
-  }
-
   void _send([List<int>? bytes]) {
     Client.singleton().send(bytes ?? _commandText.text.codeUnits);
   }
@@ -85,79 +58,50 @@ class _ControlsCardState extends ConsumerState<ControlsCard> {
       return const SizedBox.shrink();
     }
 
-    final movementButtonsKey = GlobalKey<_MovementButtonsState>();
-    return CallbackShortcuts(
-      bindings: {
-        const SingleActivator(LogicalKeyboardKey.arrowUp): () {
-          movementButtonsKey.currentState?.widget.onForward;
-        },
-        const SingleActivator(LogicalKeyboardKey.arrowDown): () {
-          movementButtonsKey.currentState?.widget.onBackwards;
-        },
-        const SingleActivator(
-          LogicalKeyboardKey.arrowLeft,
-          shift: true,
-        ): () {
-          movementButtonsKey.currentState?.widget.onLeft;
-        },
-        const SingleActivator(
-          LogicalKeyboardKey.arrowRight,
-          shift: true,
-        ): () {
-          movementButtonsKey.currentState?.widget.onRight;
-        },
-        const SingleActivator(LogicalKeyboardKey.space): () {
-          movementButtonsKey.currentState?.widget.onBrakes;
-        },
-      },
-      child: Card(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 640),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const _OnOffSwitch(),
-                        Text('Steering Angle: $_angle'),
-                      ],
+    final steeringAngleIndicator = Consumer(builder: (context, ref, child) {
+      final angle = ref.watch(wheelAngleProvider);
+      return Text('Steering Angle: $angle');
+    });
+    return Card(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 640),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const _OnOffSwitch(),
+                      steeringAngleIndicator,
+                    ],
+                  ),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                        child: _CarState(
+                      onSend: (text) => _send(text.codeUnits),
+                    )),
+                    _MovementButtons(),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _commandText,
+                      ),
                     ),
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                          child: _CarState(
-                        onSend: (text) => _send(text.codeUnits),
-                      )),
-                      _MovementButtons(
-                        key: movementButtonsKey,
-                        onForward: _moveForward,
-                        onBackwards: _moveBackwards,
-                        onLeft: _moveLeft,
-                        onRight: _moveRight,
-                        onBrakes: _brake,
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _commandText,
-                        ),
-                      ),
-                      Switch(value: _isTransmittingText, onChanged: _onSwitchChanged),
-                      IconButton(onPressed: _send, icon: const Icon(Icons.send_outlined))
-                    ],
-                  ),
-                  if (Db().read<bool>(useSimulator) ?? false) const _ReadingsSetter(),
-                ],
-              ),
+                    Switch(value: _isTransmittingText, onChanged: _onSwitchChanged),
+                    IconButton(onPressed: _send, icon: const Icon(Icons.send_outlined))
+                  ],
+                ),
+                if (Db().read<bool>(useSimulator) ?? false) const _ReadingsSetter(),
+              ],
             ),
           ),
         ),
@@ -208,27 +152,11 @@ class _CarState extends ConsumerWidget {
   }
 }
 
-class _MovementButtons extends StatefulWidget {
-  const _MovementButtons({
-    super.key,
-    required this.onForward,
-    required this.onLeft,
-    required this.onRight,
-    required this.onBrakes,
-    required this.onBackwards,
-  });
+class _MovementButtons extends StatelessWidget {
+  void _fallbackCallback() {
+    print('Action not enabled or not found');
+  }
 
-  final void Function() onForward;
-  final void Function() onLeft;
-  final void Function() onRight;
-  final void Function() onBackwards;
-  final void Function() onBrakes;
-
-  @override
-  State<_MovementButtons> createState() => _MovementButtonsState();
-}
-
-class _MovementButtonsState extends State<_MovementButtons> {
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -237,7 +165,7 @@ class _MovementButtonsState extends State<_MovementButtons> {
         Center(
           child: GestureDetector(
             child: HoldDownButton(
-              callback: widget.onForward,
+              callback: Actions.handler(context, const MoveForwardIntent()) ?? _fallbackCallback,
               text: 'Forward',
               child: const Icon(Icons.keyboard_arrow_up_rounded),
             ),
@@ -247,17 +175,16 @@ class _MovementButtonsState extends State<_MovementButtons> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             HoldDownButton(
-              callback: widget.onLeft,
+              callback: Actions.handler(context, const TurnLeftIntent()) ?? _fallbackCallback,
               text: 'Left',
               child: const Icon(Icons.keyboard_arrow_left_rounded),
             ),
             HoldDownButton(
-              callback: widget.onBrakes,
+              callback: Actions.handler(context, const StopIntent()) ?? _fallbackCallback,
               text: 'Stop',
-              // child: const Icon(Icons.warning_amber_rounded),
             ),
             HoldDownButton(
-              callback: widget.onRight,
+              callback: Actions.handler(context, const TurnRightIntent()) ?? _fallbackCallback,
               text: 'Right',
               child: const Icon(Icons.keyboard_arrow_right_rounded),
             ),
@@ -265,7 +192,7 @@ class _MovementButtonsState extends State<_MovementButtons> {
         ),
         Center(
           child: HoldDownButton(
-            callback: widget.onBackwards,
+            callback: Actions.handler(context, const StopIntent()) ?? _fallbackCallback,
             text: 'Backwards',
             child: const Icon(Icons.keyboard_arrow_down_rounded),
           ),

@@ -287,7 +287,7 @@ enum _ParkingAlgo {
 }
 
 class _ReadingsSetter extends StatefulWidget {
-  const _ReadingsSetter({super.key});
+  const _ReadingsSetter();
 
   @override
   State<_ReadingsSetter> createState() => __ReadingsSetterState();
@@ -319,7 +319,7 @@ class __ReadingsSetterState extends State<_ReadingsSetter> {
       maxLength: 1,
       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[012]'))],
       onChanged: (value) {
-        MockServer.singleton().carState = int.tryParse(value) ?? 0;
+        MockServer.singleton().carState.base = int.tryParse(value) ?? 0;
       },
     );
 
@@ -328,7 +328,7 @@ class __ReadingsSetterState extends State<_ReadingsSetter> {
       controller: _encoderController,
       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9\.-]'))],
       onChanged: (value) {
-        MockServer.singleton().encoder = num.tryParse(value) ?? 0;
+        MockServer.singleton().encoder.base = num.tryParse(value) ?? 0;
       },
     );
     return Column(

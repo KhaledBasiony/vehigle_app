@@ -130,7 +130,7 @@ class MockServer {
   }
 
   _moveForward() {
-    encoder.oneTime = 1;
+    encoder.base = encoder._base + 1;
   }
 
   _brakes() {
@@ -138,7 +138,7 @@ class MockServer {
   }
 
   _moveBackwards() {
-    encoder.oneTime = -1;
+    encoder.base = encoder._base - 1;
   }
 }
 

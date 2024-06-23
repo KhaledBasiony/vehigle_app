@@ -328,7 +328,7 @@ class __ReadingsSetterState extends State<_ReadingsSetter> {
       controller: _encoderController,
       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9\.-]'))],
       onChanged: (value) {
-        MockServer.singleton().encoder.base = num.tryParse(value) ?? 0;
+        MockServer.singleton().encoderStep = num.tryParse(value) ?? 0;
       },
     );
     return Column(

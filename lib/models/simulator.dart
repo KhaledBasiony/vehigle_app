@@ -41,6 +41,9 @@ class MockServer {
   final paramC = _Reading<int>(base: 0);
   final paramD = _Reading<int>(base: 0);
 
+  num _steeringAngle = 0;
+  num _encoderStep = 0;
+
   Future<void> up() async {
     _timer = Timer.periodic(Duration(milliseconds: Db().read<int>(simulatorReadingsDelay) ?? 50), (timer) {
       _sendData();
@@ -83,7 +86,7 @@ class MockServer {
         'RB': rb.value,
         'RC': rc.value,
         'ENC': encoder.value,
-        'CMPS': compass.value,
+        'CMPS': compass.value % 360,
         'PHS': carState.value,
         'ALG': algorithm.value,
         'PRM_A': paramA.value,
@@ -92,14 +95,17 @@ class MockServer {
         'PRM_D': paramD.value,
       })),
     );
-    cf.oneTime = rng.nextDouble();
-    cb.oneTime = rng.nextDouble();
-    lc.oneTime = rng.nextDouble();
-    rc.oneTime = rng.nextDouble();
-    lf.oneTime = rng.nextDouble();
-    rf.oneTime = rng.nextDouble();
-    lb.oneTime = rng.nextDouble();
-    rb.oneTime = rng.nextDouble();
+    cf.oneTime = rng.nextDouble() * 0.5 + 0.25;
+    cb.oneTime = rng.nextDouble() * 0.5 + 0.25;
+    lc.oneTime = rng.nextDouble() * 0.5 + 0.25;
+    rc.oneTime = rng.nextDouble() * 0.5 + 0.25;
+    lf.oneTime = 0.0;
+    rf.oneTime = 0.0;
+    lb.oneTime = 0.0;
+    rb.oneTime = 0.0;
+
+    compass.base = compass._base + _steeringAngle;
+    encoder.base = encoder._base + _encoderStep;
   }
 
   void handleCommand(List<int> command) {
@@ -115,10 +121,12 @@ class MockServer {
     }
   }
 
+  set encoderStep(num step) => _encoderStep = step;
+
   void _steer(int angle) {
     // WARNING: this is not realistic, in reality this should change the wheels steering angles
     // but for simulation purposes it will change the compass angle
-    compass.base = angle;
+    _steeringAngle = angle - 40;
   }
 
   _moveForward() {

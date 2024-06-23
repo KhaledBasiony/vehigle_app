@@ -64,17 +64,42 @@ class MapDrawer extends ConsumerStatefulWidget {
 }
 
 class _MapDrawerState extends ConsumerState<MapDrawer> {
-  void _moveForward(num dist) {
-    CarModel.instance.readingsHistory = Queue.of(
-      CarModel.instance.readingsHistory.map(
-        (e) => e.translate(0, dist.toDouble()),
-      ),
-    );
+  void _transfromMap(num dist, num angle) {
+    print('$dist, $angle');
+    if (angle < -pi || angle > pi) {
+      print('Warning! angle must be from -Pi to Pi, received $angle, ignoring');
+    }
+    if (dist == 0) {
+      return;
+    }
+    if (angle == 0) {
+      // only move car linearly front or backwards.
+      CarModel.instance.readingsHistory = Queue.of(
+        CarModel.instance.readingsHistory.map(
+          (sensorReadings) => sensorReadings.translate(0, dist.toDouble()),
+        ),
+      );
+    } else {
+      // car is moving on an arc.
+      final radius = dist / angle;
+      final rotationCenter = Offset(
+        radius,
+        -CarModel.instance.centerToAxle * MapModel.instance.scale,
+      );
+      CarModel.instance.readingsHistory = Queue.of(
+        CarModel.instance.readingsHistory.map(
+          (sensorReadings) => sensorReadings.rotateAbout(rotationCenter, angle),
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(messagesProvider, (previous, next) {
+    ref.listen(messagesProvider, (_, next) {
+      final prevReadings = jsonDecode(
+        next.elementAtOrNull(max(next.length - 2, 0))?.text ?? '{}',
+      ) as Map<String, dynamic>?;
       final readings = jsonDecode(next.last.text) as Map<String, dynamic>;
       CarModel.instance.readingsHistory.addFirst(
         SensorOffsets.fromReadings(
@@ -94,9 +119,13 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
       }
 
       final encoderReading = readings['ENC'] as num;
-      if (encoderReading != 0) {
-        _moveForward(encoderReading);
-      }
+      final compassReading = readings['CMPS'] as num;
+      final prevEncoderReading = prevReadings?['ENC'] as num?;
+      final prevCompassReading = prevReadings?['CMPS'] as num?;
+
+      final encoderDiff = encoderReading - (prevEncoderReading ?? 0);
+      final angleDiff = (compassReading - (prevCompassReading ?? 0)) * pi / 180;
+      _transfromMap(encoderDiff, angleDiff);
 
       setState(() {});
     });

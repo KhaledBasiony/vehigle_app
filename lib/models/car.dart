@@ -12,6 +12,7 @@ class CarModel {
 
   double width = 20;
   double height = 40;
+  double centerToAxle = 14.44;
   Queue<SensorOffsets> readingsHistory = Queue();
 }
 
@@ -84,6 +85,23 @@ class SensorOffsets {
         left: left.translate(translateX, translateY),
       );
 
+  /// Rotate all sensor readings about a certain rotation center.
+  ///
+  /// the [rotationCenter] should be relative to the center of current readings.
+  ///
+  /// the [angle] should be in radians from -pi to pi, measured clockwise
+  /// from current reading to next reading.
+  SensorOffsets rotateAbout(Offset rotationCenter, num angle) => SensorOffsets(
+        frontRight: frontRight.rotateAbout(rotationCenter, angle),
+        frontCenter: frontCenter.rotateAbout(rotationCenter, angle),
+        frontLeft: frontLeft.rotateAbout(rotationCenter, angle),
+        backRight: backRight.rotateAbout(rotationCenter, angle),
+        backCenter: backCenter.rotateAbout(rotationCenter, angle),
+        backLeft: backLeft.rotateAbout(rotationCenter, angle),
+        right: right.rotateAbout(rotationCenter, angle),
+        left: left.rotateAbout(rotationCenter, angle),
+      );
+
   final Offset frontRight;
   final Offset frontCenter;
   final Offset frontLeft;
@@ -110,4 +128,15 @@ class MapModel {
   set size(Size newSize) => _size = newSize;
 
   Offset get center => Offset(_size.width / 2, _size.height / 2);
+}
+
+extension on Offset {
+  Offset rotateAbout(Offset center, num alpha) {
+    final pBar = this - center;
+    // alpha should be positive, but
+    // it is negative because when these offsets are plotted
+    // they are plotted on axes where the positive y direction is downwards not upwards
+    final tBar = Offset.fromDirection(pBar.direction - alpha, pBar.distance);
+    return tBar + center;
+  }
 }

@@ -163,12 +163,10 @@ class _MovementButtons extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Center(
-          child: GestureDetector(
-            child: HoldDownButton(
-              callback: Actions.handler(context, const MoveForwardIntent()) ?? _fallbackCallback,
-              text: 'Forward',
-              child: const Icon(Icons.keyboard_arrow_up_rounded),
-            ),
+          child: HoldDownButton(
+            callback: Actions.handler(context, const MoveForwardIntent()) ?? _fallbackCallback,
+            text: 'Forward',
+            child: const Icon(Icons.keyboard_arrow_up_rounded),
           ),
         ),
         Row(
@@ -286,14 +284,14 @@ enum _ParkingAlgo {
   twoCircles,
 }
 
-class _ReadingsSetter extends StatefulWidget {
+class _ReadingsSetter extends ConsumerStatefulWidget {
   const _ReadingsSetter();
 
   @override
-  State<_ReadingsSetter> createState() => __ReadingsSetterState();
+  ConsumerState<_ReadingsSetter> createState() => __ReadingsSetterState();
 }
 
-class __ReadingsSetterState extends State<_ReadingsSetter> {
+class __ReadingsSetterState extends ConsumerState<_ReadingsSetter> {
   late final TextEditingController _stateController;
   late final TextEditingController _encoderController;
 
@@ -313,6 +311,10 @@ class __ReadingsSetterState extends State<_ReadingsSetter> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(encoderStepProvider, (previous, next) {
+      if (next == num.tryParse(_encoderController.text) || _encoderController.text.isEmpty) return;
+      _encoderController.text = next.toString();
+    });
     final stateSetter = TextFormField(
       decoration: const InputDecoration(labelText: 'Car State'),
       controller: _stateController,
@@ -328,7 +330,9 @@ class __ReadingsSetterState extends State<_ReadingsSetter> {
       controller: _encoderController,
       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9\.-]'))],
       onChanged: (value) {
-        MockServer.singleton().encoderStep = num.tryParse(value) ?? 0;
+        final step = num.tryParse(value) ?? 0;
+        MockServer.singleton().encoderStep = step;
+        ref.read(encoderStepProvider.notifier).state = step;
       },
     );
     return Column(

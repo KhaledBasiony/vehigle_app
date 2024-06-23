@@ -130,15 +130,15 @@ class MockServer {
   }
 
   _moveForward() {
-    encoder.base = encoder._base + 1;
+    _encoderStep += 1;
   }
 
   _brakes() {
-    encoder.oneTime = 0;
+    _encoderStep = 0;
   }
 
   _moveBackwards() {
-    encoder.base = encoder._base - 1;
+    _encoderStep -= 1;
   }
 }
 

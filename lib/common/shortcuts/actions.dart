@@ -8,24 +8,39 @@ import 'package:mobile_car_sim/models/client.dart';
 part 'intents.dart';
 
 class MoveForwardAction extends Action<MoveForwardIntent> {
+  MoveForwardAction({required this.ref});
+
+  final WidgetRef ref;
+
   @override
   Object? invoke(MoveForwardIntent intent) {
+    ref.read(encoderStepProvider.notifier).state += 1;
     Client.singleton().send('f'.codeUnits);
     return null;
   }
 }
 
 class MoveBackwardsAction extends Action<MoveBackwardsIntent> {
+  MoveBackwardsAction({required this.ref});
+
+  final WidgetRef ref;
+
   @override
   Object? invoke(MoveBackwardsIntent intent) {
+    ref.read(encoderStepProvider.notifier).state -= 1;
     Client.singleton().send('r'.codeUnits);
     return null;
   }
 }
 
 class StopAction extends Action<StopIntent> {
+  StopAction({required this.ref});
+
+  final WidgetRef ref;
+
   @override
   Object? invoke(StopIntent intent) {
+    ref.read(encoderStepProvider.notifier).state = 0;
     Client.singleton().send('b'.codeUnits);
     return null;
   }

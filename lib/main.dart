@@ -42,11 +42,11 @@ class MainPage extends StatelessWidget {
     return Consumer(
       builder: (context, ref, child) => Actions(
         actions: {
-          MoveForwardIntent: MoveForwardAction(),
-          MoveBackwardsIntent: MoveBackwardsAction(),
+          MoveForwardIntent: MoveForwardAction(ref: ref),
+          MoveBackwardsIntent: MoveBackwardsAction(ref: ref),
           TurnLeftIntent: TurnLeftAction(ref: ref),
           TurnRightIntent: TurnRightAction(ref: ref),
-          StopIntent: StopAction(),
+          StopIntent: StopAction(ref: ref),
         },
         child: child!,
       ),

@@ -58,6 +58,7 @@ final isRunningProvider = StateNotifierProvider<RunningStateNotifier, bool>((ref
 final isConnectedProvider = StateProvider((ref) => false);
 
 final wheelAngleProvider = StateProvider<int>((ref) => 0);
+final encoderStepProvider = StateProvider<num>((ref) => 0.0);
 
 class Message {
   Message({

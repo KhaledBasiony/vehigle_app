@@ -8,11 +8,23 @@ class SettingsEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SingleChildScrollView(
+    final holdDownRepeatDelayField = _DelayDuration(
+      labelText: 'Hold Down Repeat Delay (ms)',
+      dbKey: holdDownDelayKey,
+      isChangedProvider: _holdDownChangedProvider,
+    );
+
+    final simulatorReceiveIntervalField = _DelayDuration(
+      labelText: 'Simulator Readings Delay (ms)',
+      dbKey: simulatorReadingsDelay,
+      isChangedProvider: _simulatorDelayChangedProvider,
+    );
+
+    return SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Padding(
+          const Padding(
             padding: EdgeInsets.symmetric(vertical: 20.0),
             child: Align(
               alignment: AlignmentDirectional.centerStart,
@@ -24,23 +36,33 @@ class SettingsEditor extends StatelessWidget {
               ),
             ),
           ),
-          _HoldDownDuration(),
-          SizedBox(height: 10),
-          _ConnectionSimulator(),
+          holdDownRepeatDelayField,
+          const SizedBox(height: 10),
+          simulatorReceiveIntervalField,
+          const SizedBox(height: 10),
+          const _ConnectionSimulator(),
         ],
       ),
     );
   }
 }
 
-class _HoldDownDuration extends ConsumerStatefulWidget {
-  const _HoldDownDuration();
+class _DelayDuration extends ConsumerStatefulWidget {
+  const _DelayDuration({
+    required this.labelText,
+    required this.dbKey,
+    required this.isChangedProvider,
+  });
+
+  final String labelText;
+  final String dbKey;
+  final StateProvider<bool> isChangedProvider;
 
   @override
-  ConsumerState<_HoldDownDuration> createState() => __HoldDownDurationState();
+  ConsumerState<_DelayDuration> createState() => __DelayDurationState();
 }
 
-class __HoldDownDurationState extends ConsumerState<_HoldDownDuration> {
+class __DelayDurationState extends ConsumerState<_DelayDuration> {
   late String _initValue;
   late final TextEditingController _delayController;
 
@@ -48,10 +70,10 @@ class __HoldDownDurationState extends ConsumerState<_HoldDownDuration> {
   void initState() {
     super.initState();
 
-    _initValue = (Db().read<int>(holdDownDelayKey) ?? 500).toString();
+    _initValue = (Db().read<int>(widget.dbKey) ?? 500).toString();
     _delayController = TextEditingController(text: _initValue);
     _delayController.addListener(() {
-      ref.read(_delayValueChangedProvider.notifier).state = _delayController.text != _initValue;
+      ref.read(widget.isChangedProvider.notifier).state = _delayController.text != _initValue;
     });
   }
 
@@ -62,8 +84,8 @@ class __HoldDownDurationState extends ConsumerState<_HoldDownDuration> {
   }
 
   void _save() async {
-    await Db().write(holdDownDelayKey, int.parse(_delayController.text));
-    ref.read(_delayValueChangedProvider.notifier).state = false;
+    await Db().write(widget.dbKey, int.parse(_delayController.text));
+    ref.read(widget.isChangedProvider.notifier).state = false;
     _initValue = _delayController.text;
   }
 
@@ -73,13 +95,13 @@ class __HoldDownDurationState extends ConsumerState<_HoldDownDuration> {
       children: [
         Expanded(
           child: RoundedTextField(
-            text: 'Hold Down Repeat Delay (ms)',
+            text: widget.labelText,
             controller: _delayController,
           ),
         ),
         IconButton(
           color: Colors.greenAccent,
-          onPressed: ref.watch(_delayValueChangedProvider) ? _save : null,
+          onPressed: ref.watch(widget.isChangedProvider) ? _save : null,
           icon: const Icon(Icons.check_rounded),
         ),
       ],
@@ -107,7 +129,7 @@ class __ConnectionSimulatorState extends ConsumerState<_ConnectionSimulator> {
 
   void _save() async {
     await Db().write(useSimulator, _currentValue);
-    ref.read(_simulatorValueChangedProvider.notifier).state = false;
+    ref.read(_useSimulatorChangedProvider.notifier).state = false;
     _initValue = _currentValue;
   }
 
@@ -123,13 +145,13 @@ class __ConnectionSimulatorState extends ConsumerState<_ConnectionSimulator> {
               setState(() {
                 _currentValue = value;
               });
-              ref.read(_simulatorValueChangedProvider.notifier).state = value != _initValue;
+              ref.read(_useSimulatorChangedProvider.notifier).state = value != _initValue;
             },
           ),
         ),
         IconButton(
           color: Colors.greenAccent,
-          onPressed: ref.watch(_simulatorValueChangedProvider) ? _save : null,
+          onPressed: ref.watch(_useSimulatorChangedProvider) ? _save : null,
           icon: const Icon(Icons.check_rounded),
         ),
       ],
@@ -137,10 +159,8 @@ class __ConnectionSimulatorState extends ConsumerState<_ConnectionSimulator> {
   }
 }
 
-final _delayValueChangedProvider = StateProvider<bool>((ref) {
-  return false;
-});
+final _holdDownChangedProvider = StateProvider<bool>((ref) => false);
 
-final _simulatorValueChangedProvider = StateProvider<bool>((ref) {
-  return false;
-});
+final _simulatorDelayChangedProvider = StateProvider<bool>((ref) => false);
+
+final _useSimulatorChangedProvider = StateProvider<bool>((ref) => false);

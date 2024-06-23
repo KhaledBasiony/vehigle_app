@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:mobile_car_sim/common/db.dart';
+
 class MockServer {
   MockServer._({
     this.ip = '127.0.0.1',
@@ -38,7 +40,7 @@ class MockServer {
   final paramD = _Reading<int>(base: 0);
 
   Future<void> up() async {
-    _timer = Timer.periodic(const Duration(milliseconds: 10), (timer) {
+    _timer = Timer.periodic(Duration(milliseconds: Db().read<int>(simulatorReadingsDelay) ?? 50), (timer) {
       _sendData();
     });
     if (_socket != null) {

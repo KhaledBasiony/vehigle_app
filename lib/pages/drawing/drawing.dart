@@ -131,10 +131,40 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
 
       setState(() {});
     });
-    return CustomPaint(
+
+    final searchingPaint = CustomPaint(
+      key: const ValueKey('Searching-Paint'),
       painter: CarPainter(),
       foregroundPainter: MapPainter(),
       size: Size.infinite,
+    );
+
+    final initCarCenter = MapModel.instance.center.translate(
+      0,
+      -MapModel.instance.center.dy / 2,
+    );
+
+    final parkingPaint = CustomPaint(
+      key: const ValueKey('Parking-Paint'),
+      painter: MapPainter(
+        myShouldRepaint: false,
+        centerOffset: Offset(0, -MapModel.instance.center.dy / 2),
+      ),
+      foregroundPainter: ParkingPainter(
+        initCarCenter: initCarCenter,
+        enteranceAngle: 65 * pi / 180,
+        finalPoint: Offset(
+          CarModel.instance.width * 2.25 * MapModel.instance.scale,
+          CarModel.instance.height * 1.5 * MapModel.instance.scale,
+        ),
+        finalRadius: CarModel.instance.minRotationRadius * MapModel.instance.scale,
+      ),
+      size: Size.infinite,
+    );
+
+    return AnimatedSwitcher(
+      duration: Durations.long4,
+      child: ref.read(carStatesProvider) == CarStates.searching ? searchingPaint : parkingPaint,
     );
   }
 }
@@ -164,7 +194,129 @@ class CarPainter extends CustomPainter {
   }
 }
 
+class ParkingPainter extends CustomPainter {
+  const ParkingPainter({
+    required this.initCarCenter,
+    required this.finalPoint,
+    required this.finalRadius,
+    required this.enteranceAngle,
+  });
+
+  final Offset initCarCenter;
+  final Offset finalPoint;
+  final double finalRadius;
+
+  /// in radians.
+  final double enteranceAngle;
+
+  void _paintPath(Canvas canvas) {
+    final paint = Paint();
+    paint.strokeWidth = 3;
+    paint.style = PaintingStyle.stroke;
+
+    canvas.save();
+    canvas.translate(initCarCenter.dx, initCarCenter.dy + CarModel.instance.centerToAxle * MapModel.instance.scale);
+    final pTan2 = Offset(
+      finalPoint.dx - finalRadius + finalRadius * cos(enteranceAngle),
+      finalPoint.dy - finalRadius * sin(enteranceAngle),
+    );
+
+    final c = pTan2.dx / tan(enteranceAngle) - pTan2.dy;
+    final initRadius = -c * (sin(enteranceAngle) + 1 / tan(enteranceAngle) + cos(enteranceAngle) / tan(enteranceAngle));
+
+    final xTan1 = -c * sin(enteranceAngle);
+    final yTan1 = sqrt(pow(initRadius, 2) - pow(xTan1 - initRadius, 2));
+
+    paint.color = Colors.red;
+    canvas.drawCircle(finalPoint, 2 * MapModel.instance.scale, paint);
+    canvas.drawCircle(Offset.zero, 2 * MapModel.instance.scale, paint);
+
+    paint.color = Colors.amber;
+    final initCenter = Offset(initRadius, 0);
+    canvas.drawCircle(
+      initCenter,
+      MapModel.instance.scale,
+      paint,
+    );
+    canvas.drawArc(
+      Rect.fromCircle(
+        center: initCenter,
+        radius: initRadius,
+      ),
+      pi,
+      -acos(1 - xTan1 / initRadius),
+      false,
+      paint,
+    );
+
+    paint.color = Colors.deepPurple;
+    canvas.drawLine(Offset(xTan1, yTan1), pTan2, paint);
+
+    paint.color = Colors.lightBlue;
+    final finalCenter = finalPoint.translate(-finalRadius, 0);
+    canvas.drawCircle(
+      finalCenter,
+      MapModel.instance.scale,
+      paint,
+    );
+    canvas.drawArc(
+      Rect.fromCircle(
+        center: finalCenter,
+        radius: finalRadius,
+      ),
+      -enteranceAngle,
+      enteranceAngle,
+      false,
+      paint,
+    );
+    canvas.restore();
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final scale = MapModel.instance.scale;
+    MapModel.instance.size = size;
+
+    final paint = Paint();
+    paint.color = Colors.lightBlue;
+
+    // circle radius = ...
+    // move canvas center to circle radius
+    // draw/rotate car relative to canvas center.
+    // move canvas radius linearly to move car on a line
+    // translate canvas center to other side.
+    // draw/rotate car relative to canvas center
+
+    canvas.save();
+    canvas.translate(initCarCenter.dx, initCarCenter.dy);
+    canvas.drawRect(
+      Rect.fromCenter(
+        center: Offset.zero,
+        width: CarModel.instance.width * scale,
+        height: CarModel.instance.height * scale,
+      ),
+      paint,
+    );
+    canvas.restore();
+    _paintPath(canvas);
+    return;
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return false;
+  }
+}
+
 class MapPainter extends CustomPainter {
+  MapPainter({
+    this.centerOffset = Offset.zero,
+    this.myShouldRepaint = true,
+  });
+
+  Offset centerOffset;
+  final bool myShouldRepaint;
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint();
@@ -182,8 +334,8 @@ class MapPainter extends CustomPainter {
       // Iterate over UltraSonic values in a single reading element.
       for (var readingLocation in reading
           .translate(
-            MapModel.instance.center.dx,
-            MapModel.instance.center.dy,
+            MapModel.instance.center.dx + centerOffset.dx,
+            MapModel.instance.center.dy + centerOffset.dy,
           )
           .toList()) {
         canvas.drawCircle(
@@ -207,6 +359,6 @@ class MapPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return true;
+    return myShouldRepaint;
   }
 }

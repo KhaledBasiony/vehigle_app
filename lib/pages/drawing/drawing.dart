@@ -81,11 +81,6 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
     } else {
       // car is moving on an arc.
 
-      // this is to fix moving in reverse.
-      // since the direction of the angle actually depends on the direction of velocity
-      // rather than the absolute angle itself.
-      angle = angle * dist.sign;
-
       final radius = dist / angle;
       final rotationCenter = Offset(
         radius * MapModel.instance.scale,

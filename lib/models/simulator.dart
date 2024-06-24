@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:mobile_car_sim/common/db.dart';
+import 'package:mobile_car_sim/models/car.dart';
 
 class MockServer {
   MockServer._({
@@ -103,7 +104,8 @@ class MockServer {
     lb.oneTime = 0.0;
     rb.oneTime = 0.0;
 
-    compass.base = compass._base + _steeringAngle * 0.1;
+    final compassDiff = _encoderStep * tan(_steeringAngle * pi / 180) / CarModel.instance.axleToAxle;
+    compass.base = compass._base + compassDiff * 180 / pi;
     encoder.base = encoder._base + _encoderStep;
   }
 

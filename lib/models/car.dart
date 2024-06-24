@@ -13,6 +13,7 @@ class CarModel {
   double width = 20;
   double height = 40;
   double centerToAxle = 14.44;
+  double get axleToAxle => centerToAxle * 2;
   Queue<SensorOffsets> readingsHistory = Queue();
   Offset latestRotationCenter = Offset.zero;
 }

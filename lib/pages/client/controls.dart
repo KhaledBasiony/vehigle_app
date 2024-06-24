@@ -60,7 +60,17 @@ class _ControlsCardState extends ConsumerState<ControlsCard> {
 
     final steeringAngleIndicator = Consumer(builder: (context, ref, child) {
       final angle = ref.watch(wheelAngleProvider);
-      return Text('Steering Angle: $angle');
+      return RichText(
+        text: TextSpan(
+          text: 'Steering Angle: ',
+          children: [
+            TextSpan(
+              text: '$angle',
+              style: const TextStyle(fontSize: 32),
+            ),
+          ],
+        ),
+      );
     });
     return Card(
       child: Center(

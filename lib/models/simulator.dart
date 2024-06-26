@@ -72,6 +72,29 @@ class MockServer {
     await _socket?.close();
     clientSocket = null;
     _socket = null;
+
+    // Reset readings
+    // Readings variables.
+    cf._base = 0;
+    cb._base = 0;
+    lf._base = 0;
+    lb._base = 0;
+    lc._base = 0;
+    rf._base = 0;
+    rb._base = 0;
+    rc._base = 0;
+    encoder._base = 0;
+    compass._base = 0;
+    carState._base = 0;
+    phase._base = 0;
+    algorithm._base = 0;
+    paramA._base = 0;
+    paramB._base = 0;
+    paramC._base = 0;
+    paramD._base = 0;
+
+    _steeringAngle = 0;
+    _encoderStep = 0;
   }
 
   void _sendData() {

@@ -114,12 +114,12 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
         CarModel.instance.readingsHistory.removeLast();
       }
 
-      final newX = readings['dX'] as double;
-      final newY = readings['dY'] as double;
-      final encoderReading = readings['ENC'] as num;
-      final compassReading = readings['CMPS'] as num;
-      final prevEncoderReading = prevReadings?['ENC'] as num?;
-      final prevCompassReading = prevReadings?['CMPS'] as num?;
+      final newX = (readings['dX'] as num).toDouble();
+      final newY = (readings['dY'] as num).toDouble();
+      final encoderReading = (readings['ENC'] as num).toDouble();
+      final compassReading = (readings['CMPS'] as num).toDouble();
+      final prevEncoderReading = (prevReadings?['ENC'] as num?)?.toDouble();
+      final prevCompassReading = (prevReadings?['CMPS'] as num?)?.toDouble();
 
       final encoderDiff = encoderReading - (prevEncoderReading ?? 0);
       final angleDiff = (compassReading - (prevCompassReading ?? 0)) * pi / 180;
@@ -127,14 +127,14 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
       if (ref.read(carStatesProvider) == CarStates.searching) {
         CarModel.instance.readingsHistory.addFirst(
           SensorOffsets.fromReadings(
-            frontLeft: readings['LF'] * CarModel.maxSensorReading,
-            frontCenter: readings['CF'] * CarModel.maxSensorReading,
-            frontRight: readings['RF'] * CarModel.maxSensorReading,
-            backLeft: readings['LB'] * CarModel.maxSensorReading,
-            backCenter: readings['CB'] * CarModel.maxSensorReading,
-            backRight: readings['RB'] * CarModel.maxSensorReading,
-            right: readings['RC'] * CarModel.maxSensorReading,
-            left: readings['LC'] * CarModel.maxSensorReading,
+            frontLeft: (readings['LF'] as num).toDouble() * CarModel.maxSensorReading,
+            frontCenter: (readings['CF'] as num).toDouble() * CarModel.maxSensorReading,
+            frontRight: (readings['RF'] as num).toDouble() * CarModel.maxSensorReading,
+            backLeft: (readings['LB'] as num).toDouble() * CarModel.maxSensorReading,
+            backCenter: (readings['CB'] as num).toDouble() * CarModel.maxSensorReading,
+            backRight: (readings['RB'] as num).toDouble() * CarModel.maxSensorReading,
+            right: (readings['RC'] as num).toDouble() * CarModel.maxSensorReading,
+            left: (readings['LC'] as num).toDouble() * CarModel.maxSensorReading,
           ),
         );
         carLocation = null;

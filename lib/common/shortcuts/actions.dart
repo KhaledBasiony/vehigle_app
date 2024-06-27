@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile_car_sim/common/db.dart';
 import 'package:mobile_car_sim/common/provider.dart';
 import 'package:mobile_car_sim/models/client.dart';
 
@@ -54,7 +55,8 @@ class TurnLeftAction extends Action<TurnLeftIntent> {
   @override
   Object? invoke(TurnLeftIntent intent) {
     final angleNotifier = ref.read(wheelAngleProvider.notifier);
-    angleNotifier.state = max(angleNotifier.state - 1, -40);
+    final angleStep = Db.instance.read<int>(steeringAngleStep) ?? 1;
+    angleNotifier.state = max(angleNotifier.state - angleStep, -40);
     Client.instance.send([angleNotifier.state + 40]);
     return null;
   }
@@ -68,7 +70,8 @@ class TurnRightAction extends Action<TurnRightIntent> {
   @override
   Object? invoke(TurnRightIntent intent) {
     final angleNotifier = ref.read(wheelAngleProvider.notifier);
-    angleNotifier.state = min(angleNotifier.state + 1, 40);
+    final angleStep = Db.instance.read<int>(steeringAngleStep) ?? 1;
+    angleNotifier.state = min(angleNotifier.state + angleStep, 40);
     Client.instance.send([angleNotifier.state + 40]);
     return null;
   }

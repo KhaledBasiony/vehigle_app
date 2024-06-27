@@ -20,6 +20,12 @@ class SettingsEditor extends StatelessWidget {
       isChangedProvider: _simulatorDelayChangedProvider,
     );
 
+    final steeringAngleStepField = _DelayDuration(
+      labelText: 'Steering Angle Step',
+      dbKey: steeringAngleStep,
+      isChangedProvider: _steeringAngleChangedProvider,
+    );
+
     return SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -41,6 +47,8 @@ class SettingsEditor extends StatelessWidget {
           simulatorReceiveIntervalField,
           const SizedBox(height: 10),
           const _ConnectionSimulator(),
+          const SizedBox(height: 10),
+          steeringAngleStepField,
         ],
       ),
     );
@@ -164,3 +172,5 @@ final _holdDownChangedProvider = StateProvider<bool>((ref) => false);
 final _simulatorDelayChangedProvider = StateProvider<bool>((ref) => false);
 
 final _useSimulatorChangedProvider = StateProvider<bool>((ref) => false);
+
+final _steeringAngleChangedProvider = StateProvider<bool>((ref) => false);

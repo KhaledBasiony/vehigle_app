@@ -35,7 +35,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
       - name: View Directory
-        run: pwd | ls -R
+        run: pwd && ls -R
       - name: Build
         uses: oberhauser-dev/flutter-release-action@v0
         with:

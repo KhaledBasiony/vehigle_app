@@ -39,9 +39,9 @@ jobs:
       - name: Build
         uses: oberhauser-dev/flutter-release-action@v0
         with:
-          working-directory: 'mobile_car_sim'
+          working-directory: '.'
           dry-run: false
-          app-name: 'wrestling_scoreboard_client'
+          app-name: 'vegihle_car_sim'
           build-type: ${{ matrix.build-type }}
           token: ${{ github.token }}
           tag: ${{ github.ref }}

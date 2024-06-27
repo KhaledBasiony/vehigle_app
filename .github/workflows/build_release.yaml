@@ -7,9 +7,6 @@ jobs:
   release-app:
     name: Release Client as ${{ matrix.build-type }} (${{ matrix.platform }})
     runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        working-directory: wrestling_scoreboard_client
     
     strategy:
       fail-fast: false

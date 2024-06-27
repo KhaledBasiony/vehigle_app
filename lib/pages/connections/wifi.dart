@@ -6,7 +6,7 @@ import 'package:mobile_car_sim/common/db.dart';
 import 'package:mobile_car_sim/common/provider.dart';
 import 'package:mobile_car_sim/models/client.dart';
 import 'package:mobile_car_sim/models/simulator.dart';
-// import 'package:network_info_plus/network_info_plus.dart';
+import 'package:network_info_plus/network_info_plus.dart';
 import 'package:wifi_info_plugin_plus/wifi_info_plugin_plus.dart';
 
 class WifiDataCard extends ConsumerStatefulWidget {
@@ -21,7 +21,6 @@ class _WifiDataCardState extends ConsumerState<WifiDataCard> {
   String? _gateway;
   String? _status;
   static const port = 4000;
-  static const sourcePort = 4040;
 
   late Future _waiter;
 
@@ -47,10 +46,10 @@ class _WifiDataCardState extends ConsumerState<WifiDataCard> {
       _ip = network?.ipAddress;
       _gateway = network?.routerIp;
     } else {
-      // final network = NetworkInfo();
+      final network = NetworkInfo();
 
-      // _ip = await network.getWifiIP();
-      // _gateway = await network.getWifiGatewayIP();
+      _ip = await network.getWifiIP();
+      _gateway = await network.getWifiGatewayIP();
     }
   }
 
@@ -66,7 +65,7 @@ class _WifiDataCardState extends ConsumerState<WifiDataCard> {
 
   void _connect() async {
     try {
-      await Client.connect(_gateway!, port, sourcePort);
+      await Client.connect(_gateway!, port);
       ref.read(isConnectedProvider.notifier).state = true;
     } catch (e) {
       if (mounted) {

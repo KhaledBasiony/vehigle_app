@@ -10,10 +10,10 @@ class CarModel {
   static const maxHistory = 50;
   static const maxSensorReading = 100;
 
-  double width = 20;
-  double height = 40;
-  double centerToAxle = 14.44;
-  double maxSteeringAngle = 40;
+  final double width = 20;
+  final double height = 40;
+  final double centerToAxle = 14.44;
+  final double maxSteeringAngle = 40;
   double get axleToAxle => centerToAxle * 2;
   double get minRotationRadius => axleToAxle / tan(maxSteeringAngle * pi / 180);
   Queue<SensorOffsets> readingsHistory = Queue();

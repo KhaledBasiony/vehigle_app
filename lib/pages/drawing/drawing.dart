@@ -1,10 +1,12 @@
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_car_sim/common/provider.dart';
+import 'package:mobile_car_sim/common/widgets.dart';
 import 'package:mobile_car_sim/models/car.dart';
 
 class MapCanvas extends StatelessWidget {
@@ -64,7 +66,11 @@ class MapDrawer extends ConsumerStatefulWidget {
 }
 
 class _MapDrawerState extends ConsumerState<MapDrawer> {
-  void _transfromMap(num dist, num angle) {
+  Offset? carLocation;
+  double? yaw;
+  bool _autoUpdate = false;
+
+  void _transfromMap(double dist, double angle) {
     if (angle < -pi || angle > pi) {
       print('Warning! angle must be from -Pi to Pi, received $angle, ignoring');
     }
@@ -103,23 +109,13 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
         next.elementAtOrNull(max(next.length - 2, 0))?.text ?? '{}',
       ) as Map<String, dynamic>?;
       final readings = jsonDecode(next.last.text) as Map<String, dynamic>;
-      CarModel.instance.readingsHistory.addFirst(
-        SensorOffsets.fromReadings(
-          frontLeft: readings['LF'] * CarModel.maxSensorReading,
-          frontCenter: readings['CF'] * CarModel.maxSensorReading,
-          frontRight: readings['RF'] * CarModel.maxSensorReading,
-          backLeft: readings['LB'] * CarModel.maxSensorReading,
-          backCenter: readings['CB'] * CarModel.maxSensorReading,
-          backRight: readings['RB'] * CarModel.maxSensorReading,
-          right: readings['RC'] * CarModel.maxSensorReading,
-          left: readings['LC'] * CarModel.maxSensorReading,
-        ),
-      );
 
       if (CarModel.instance.readingsHistory.length > CarModel.maxHistory) {
         CarModel.instance.readingsHistory.removeLast();
       }
 
+      final newX = readings['dX'] as double;
+      final newY = readings['dY'] as double;
       final encoderReading = readings['ENC'] as num;
       final compassReading = readings['CMPS'] as num;
       final prevEncoderReading = prevReadings?['ENC'] as num?;
@@ -127,9 +123,36 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
 
       final encoderDiff = encoderReading - (prevEncoderReading ?? 0);
       final angleDiff = (compassReading - (prevCompassReading ?? 0)) * pi / 180;
-      _transfromMap(encoderDiff, angleDiff);
 
-      setState(() {});
+      if (ref.read(carStatesProvider) == CarStates.searching) {
+        CarModel.instance.readingsHistory.addFirst(
+          SensorOffsets.fromReadings(
+            frontLeft: readings['LF'] * CarModel.maxSensorReading,
+            frontCenter: readings['CF'] * CarModel.maxSensorReading,
+            frontRight: readings['RF'] * CarModel.maxSensorReading,
+            backLeft: readings['LB'] * CarModel.maxSensorReading,
+            backCenter: readings['CB'] * CarModel.maxSensorReading,
+            backRight: readings['RB'] * CarModel.maxSensorReading,
+            right: readings['RC'] * CarModel.maxSensorReading,
+            left: readings['LC'] * CarModel.maxSensorReading,
+          ),
+        );
+        carLocation = null;
+        yaw = null;
+        _transfromMap(encoderDiff.toDouble(), angleDiff);
+      } else if (angleDiff == 0) {
+        final newOffset = Offset(newX, -newY);
+        carLocation = (carLocation ?? Offset.zero) + newOffset;
+        yaw = compassReading * pi / 180;
+      } else {
+        carLocation = (carLocation ?? Offset.zero) + Offset(newX, -newY);
+
+        yaw = compassReading * pi / 180;
+      }
+
+      if (_autoUpdate) {
+        setState(() {});
+      }
     });
 
     final searchingPaint = CustomPaint(
@@ -158,13 +181,30 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
           CarModel.instance.height * 1.5 * MapModel.instance.scale,
         ),
         finalRadius: CarModel.instance.minRotationRadius * MapModel.instance.scale,
+        carLocation: carLocation ?? Offset.zero,
+        yaw: yaw ?? 0.0,
       ),
       size: Size.infinite,
     );
 
-    return AnimatedSwitcher(
-      duration: Durations.long4,
-      child: ref.read(carStatesProvider) == CarStates.searching ? searchingPaint : parkingPaint,
+    return Stack(
+      children: [
+        AnimatedSwitcher(
+          duration: Durations.long4,
+          child: ref.read(carStatesProvider) == CarStates.searching ? searchingPaint : parkingPaint,
+        ),
+        Row(
+          children: [
+            HoldDownButton(callback: () => setState(() {}), child: const Icon(Icons.refresh)),
+            Switch(
+              value: _autoUpdate,
+              onChanged: (value) => setState(() {
+                _autoUpdate = value;
+              }),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -200,6 +240,8 @@ class ParkingPainter extends CustomPainter {
     required this.finalPoint,
     required this.finalRadius,
     required this.enteranceAngle,
+    required this.carLocation,
+    required this.yaw,
   });
 
   final Offset initCarCenter;
@@ -208,6 +250,9 @@ class ParkingPainter extends CustomPainter {
 
   /// in radians.
   final double enteranceAngle;
+
+  final Offset carLocation;
+  final double yaw;
 
   void _paintPath(Canvas canvas) {
     final paint = Paint();
@@ -272,6 +317,34 @@ class ParkingPainter extends CustomPainter {
     canvas.restore();
   }
 
+  void _drawCar(Canvas canvas, double scale, [Paint? paint]) {
+    canvas.drawRect(
+      Rect.fromCenter(
+        center: Offset.zero,
+        width: CarModel.instance.width * scale,
+        height: CarModel.instance.height * scale,
+      ),
+      paint ?? Paint()
+        ..color = Colors.lightBlue,
+    );
+  }
+
+  void _drawDirectionCenter(Canvas canvas, double scale, [Paint? paint]) {
+    canvas.drawVertices(
+      Vertices(
+        VertexMode.triangles,
+        [
+          const Offset(0, 20),
+          const Offset(5, 0),
+          const Offset(-5, 0),
+        ],
+      ),
+      BlendMode.dst,
+      paint ?? Paint()
+        ..color = Colors.amber,
+    );
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
     final scale = MapModel.instance.scale;
@@ -280,31 +353,27 @@ class ParkingPainter extends CustomPainter {
     final paint = Paint();
     paint.color = Colors.lightBlue;
 
-    // circle radius = ...
-    // move canvas center to circle radius
-    // draw/rotate car relative to canvas center.
-    // move canvas radius linearly to move car on a line
-    // translate canvas center to other side.
-    // draw/rotate car relative to canvas center
+    print(initCarCenter);
+    print(carLocation);
+    print(yaw);
 
     canvas.save();
+
     canvas.translate(initCarCenter.dx, initCarCenter.dy);
-    canvas.drawRect(
-      Rect.fromCenter(
-        center: Offset.zero,
-        width: CarModel.instance.width * scale,
-        height: CarModel.instance.height * scale,
-      ),
-      paint,
-    );
+    canvas.translate(carLocation.dx * scale, carLocation.dy * scale);
+    canvas.rotate(yaw);
+
+    _drawCar(canvas, scale, paint);
+    _drawDirectionCenter(canvas, scale);
+
     canvas.restore();
     _paintPath(canvas);
     return;
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return false;
+  bool shouldRepaint(covariant ParkingPainter oldDelegate) {
+    return oldDelegate.carLocation != carLocation || oldDelegate.yaw != yaw;
   }
 }
 

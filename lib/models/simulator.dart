@@ -2,8 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:mobile_car_sim/common/db.dart';
+import 'package:mobile_car_sim/common/utils.dart';
 import 'package:mobile_car_sim/models/car.dart';
 
 class MockServer {
@@ -32,6 +34,7 @@ class MockServer {
   final rb = _Reading<num>(base: 0);
   final rc = _Reading<num>(base: 0);
   final encoder = _Reading<num>(base: 0);
+  final location = _Reading<Offset>(base: Offset.zero);
   final compass = _Reading<num>(base: 0);
   final carState = _Reading<int>(base: 0);
   final phase = _Reading<int>(base: 0);
@@ -98,6 +101,20 @@ class MockServer {
   }
 
   void _sendData() {
+    final compassDiff = _encoderStep * tan(_steeringAngle * pi / 180) / CarModel.instance.axleToAxle;
+    final compassValue = compass.value % 360;
+
+    final Offset newOffset;
+    if (compassDiff != 0) {
+      newOffset = arcToOffset(
+        _steeringAngle.isNegative ? -compassValue * pi / 180 : pi - compassValue * pi / 180,
+        compassDiff,
+        _encoderStep.toDouble(),
+      );
+    } else {
+      // pi / 2 - theta; because compass value is measured from Pos-Y (Clockwise) and Offset measures from Pos-X (CCW)
+      newOffset = Offset.fromDirection(pi / 2 - compassValue * pi / 180, _encoderStep.toDouble());
+    }
     clientSocket?.add(
       utf8.encode(jsonEncode({
         'CF': cf.value,
@@ -109,7 +126,9 @@ class MockServer {
         'RB': rb.value,
         'RC': rc.value,
         'ENC': encoder.value,
-        'CMPS': compass.value % 360,
+        'dX': newOffset.dx,
+        'dY': newOffset.dy,
+        'CMPS': compassValue,
         'PHS': carState.value,
         'ALG': algorithm.value,
         'PRM_A': paramA.value,
@@ -127,7 +146,6 @@ class MockServer {
     lb.oneTime = 0.0;
     rb.oneTime = 0.0;
 
-    final compassDiff = _encoderStep * tan(_steeringAngle * pi / 180) / CarModel.instance.axleToAxle;
     compass.base = compass._base + compassDiff * 180 / pi;
     encoder.base = encoder._base + _encoderStep;
   }

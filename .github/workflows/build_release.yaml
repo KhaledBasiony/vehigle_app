@@ -1,0 +1,50 @@
+name: release app
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release-app:
+    name: Release Client as ${{ matrix.build-type }} (${{ matrix.platform }})
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: wrestling_scoreboard_client
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: android
+            build-type: apk
+          - os: windows-latest
+            platform: windows
+            build-type: windows
+          - os: ubuntu-latest
+            platform: linux
+            build-type: debian
+       
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0'
+          channel: 'stable'
+      - uses: bluefireteam/melos-action@v3
+      - uses: actions/setup-java@v4
+        if: matrix.platform == 'android'
+        with:
+          # network info plus needs JDK 17
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Build
+        uses: oberhauser-dev/flutter-release-action@v0
+        with:
+          working-directory: 'mobile_car_sim'
+          dry-run: false
+          app-name: 'wrestling_scoreboard_client'
+          build-type: ${{ matrix.build-type }}
+          token: ${{ github.token }}
+          tag: ${{ github.ref }}
+          publish-stage: internal

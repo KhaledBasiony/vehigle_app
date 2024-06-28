@@ -8,7 +8,7 @@ class CarModel {
   static CarModel get instance => _instance ??= CarModel._();
 
   static const maxHistory = 50;
-  static const maxSensorReading = 100;
+  static const maxSensorReading = 200;
 
   final double width = 20;
   final double height = 40;

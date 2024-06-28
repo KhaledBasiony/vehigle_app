@@ -42,6 +42,7 @@ jobs:
           working-directory: '.'
           dry-run: false
           app-name: 'vegihle_car_sim'
+          app-version: '0.2.0'
           build-type: ${{ matrix.build-type }}
           token: ${{ github.token }}
           tag: ${{ github.ref }}

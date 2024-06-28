@@ -68,7 +68,7 @@ class MapDrawer extends ConsumerStatefulWidget {
 class _MapDrawerState extends ConsumerState<MapDrawer> {
   Offset? carLocation;
   double? yaw;
-  bool _autoUpdate = false;
+  bool _autoUpdate = true;
 
   void _transfromMap(double dist, double angle) {
     if (angle < -pi || angle > pi) {

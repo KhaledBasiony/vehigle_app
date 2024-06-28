@@ -24,6 +24,8 @@ class MockServer {
   final int port;
   final rng = Random();
 
+  bool get isUp => _socket != null;
+
   // Readings variables.
   final cf = _Reading<num>(base: 0);
   final cb = _Reading<num>(base: 0);
@@ -51,7 +53,7 @@ class MockServer {
     _timer = Timer.periodic(Duration(milliseconds: Db.instance.read<int>(simulatorReadingsDelay) ?? 50), (timer) {
       _sendData();
     });
-    if (_socket != null) {
+    if (isUp) {
       print('Mock Server already up');
       return;
     }
@@ -70,6 +72,10 @@ class MockServer {
   }
 
   Future<void> down() async {
+    if (!isUp) {
+      print('Mock Server is no Up, ignoring');
+      return;
+    }
     _timer.cancel();
     clientSocket?.destroy();
     await _socket?.close();

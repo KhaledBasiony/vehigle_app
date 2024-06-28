@@ -78,40 +78,42 @@ class _ControlsCardState extends ConsumerState<ControlsCard> {
           constraints: const BoxConstraints(maxWidth: 640),
           child: Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const _OnOffSwitch(),
+                        steeringAngleIndicator,
+                      ],
+                    ),
+                  ),
+                  Row(
                     children: [
-                      const _OnOffSwitch(),
-                      steeringAngleIndicator,
+                      Expanded(
+                          child: _CarState(
+                        onSend: (text) => _send(text.codeUnits),
+                      )),
+                      _MovementButtons(),
                     ],
                   ),
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                        child: _CarState(
-                      onSend: (text) => _send(text.codeUnits),
-                    )),
-                    _MovementButtons(),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _commandText,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _commandText,
+                        ),
                       ),
-                    ),
-                    Switch(value: _isTransmittingText, onChanged: _onSwitchChanged),
-                    IconButton(onPressed: _send, icon: const Icon(Icons.send_outlined))
-                  ],
-                ),
-                if (Db.instance.read<bool>(useSimulator) ?? false) const _ReadingsSetter(),
-              ],
+                      Switch(value: _isTransmittingText, onChanged: _onSwitchChanged),
+                      IconButton(onPressed: _send, icon: const Icon(Icons.send_outlined))
+                    ],
+                  ),
+                  if (Db.instance.read<bool>(useSimulator) ?? false) const _ReadingsSetter(),
+                ],
+              ),
             ),
           ),
         ),
@@ -204,7 +206,7 @@ class _MovementButtons extends StatelessWidget {
         ),
         Center(
           child: HoldDownButton(
-            callback: Actions.handler(context, const StopIntent()) ?? _fallbackCallback,
+            callback: Actions.handler(context, const MoveBackwardsIntent()) ?? _fallbackCallback,
             text: 'Backwards',
             child: const Icon(Icons.keyboard_arrow_down_rounded),
           ),

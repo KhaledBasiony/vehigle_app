@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_car_sim/common/db.dart';
 import 'package:mobile_car_sim/common/shortcuts/actions.dart';
@@ -95,10 +96,14 @@ class MainPage extends StatelessWidget {
                   Expanded(
                     child: LayoutBuilder(
                       builder: (context, constraints) {
+                        final isVertical = constraints.maxWidth < 1000;
+                        final controlConstraints = isVertical
+                            ? BoxConstraints(maxHeight: constraints.maxHeight / 2)
+                            : BoxConstraints(maxWidth: constraints.maxWidth / 2);
                         return Flex(
-                          direction: constraints.maxWidth < 1000 ? Axis.vertical : Axis.horizontal,
-                          children: const [
-                            Expanded(
+                          direction: isVertical ? Axis.vertical : Axis.horizontal,
+                          children: [
+                            const Expanded(
                               child: TabBarView(
                                 children: [
                                   _ClientWidget(),
@@ -106,11 +111,14 @@ class MainPage extends StatelessWidget {
                                 ],
                               ),
                             ),
-                            Padding(
-                              padding: EdgeInsets.all(8.0),
-                              child: FocusScope(
-                                autofocus: true,
-                                child: ControlsCard(),
+                            ConstrainedBox(
+                              constraints: controlConstraints,
+                              child: const Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: FocusScope(
+                                  autofocus: true,
+                                  child: ControlsCard(),
+                                ),
                               ),
                             ),
                           ],

@@ -9,11 +9,11 @@ import 'package:mobile_car_sim/common/provider.dart';
 import 'package:mobile_car_sim/common/widgets.dart';
 import 'package:mobile_car_sim/models/car.dart';
 
-class MapCanvas extends StatelessWidget {
+class MapCanvas extends ConsumerWidget {
   const MapCanvas({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     const edgeInsets = EdgeInsets.all(16.0);
     const borderWidth = 1.0;
 
@@ -30,28 +30,33 @@ class MapCanvas extends StatelessWidget {
         MapModel.instance.scale = netCanvasSide / (CarModel.maxSensorReading * 2 + CarModel.instance.height);
 
         final borderRadius = BorderRadius.circular(20);
-        return Center(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: canvasSide,
-              maxWidth: canvasSide,
-            ),
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.primary,
-                  width: borderWidth,
+        return Stack(
+          children: [
+            Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: canvasSide,
+                  maxWidth: canvasSide,
                 ),
-                borderRadius: borderRadius,
-              ),
-              margin: edgeInsets,
-              padding: edgeInsets,
-              child: ClipRRect(
-                borderRadius: borderRadius,
-                child: const MapDrawer(),
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.primary,
+                      width: borderWidth,
+                    ),
+                    borderRadius: borderRadius,
+                  ),
+                  margin: edgeInsets,
+                  padding: edgeInsets,
+                  child: ClipRRect(
+                    borderRadius: borderRadius,
+                    child: const MapDrawer(),
+                  ),
+                ),
               ),
             ),
-          ),
+            _RefresherButtons(callback: () => ref.read(_nextFrameCounter.notifier).state += 1),
+          ],
         );
       },
     );
@@ -68,7 +73,6 @@ class MapDrawer extends ConsumerStatefulWidget {
 class _MapDrawerState extends ConsumerState<MapDrawer> {
   Offset? carLocation;
   double? yaw;
-  bool _autoUpdate = true;
 
   void _transfromMap(double dist, double angle) {
     if (angle < -pi || angle > pi) {
@@ -104,6 +108,11 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(_nextFrameCounter, (previous, next) {
+      if (next != previous) {
+        setState(() {});
+      }
+    });
     ref.listen(messagesProvider, (_, next) {
       final prevReadings = jsonDecode(
         next.elementAtOrNull(max(next.length - 2, 0))?.text ?? '{}',
@@ -150,7 +159,7 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
         yaw = compassReading * pi / 180;
       }
 
-      if (_autoUpdate) {
+      if (ref.read(_autoRefreshProvider)) {
         setState(() {});
       }
     });
@@ -187,24 +196,9 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
       size: Size.infinite,
     );
 
-    return Stack(
-      children: [
-        AnimatedSwitcher(
-          duration: Durations.long4,
-          child: ref.read(carStatesProvider) == CarStates.searching ? searchingPaint : parkingPaint,
-        ),
-        Row(
-          children: [
-            HoldDownButton(callback: () => setState(() {}), child: const Icon(Icons.refresh)),
-            Switch(
-              value: _autoUpdate,
-              onChanged: (value) => setState(() {
-                _autoUpdate = value;
-              }),
-            ),
-          ],
-        ),
-      ],
+    return AnimatedSwitcher(
+      duration: Durations.long4,
+      child: ref.read(carStatesProvider) == CarStates.searching ? searchingPaint : parkingPaint,
     );
   }
 }
@@ -353,10 +347,6 @@ class ParkingPainter extends CustomPainter {
     final paint = Paint();
     paint.color = Colors.lightBlue;
 
-    print(initCarCenter);
-    print(carLocation);
-    print(yaw);
-
     canvas.save();
 
     canvas.translate(initCarCenter.dx, initCarCenter.dy);
@@ -431,3 +421,29 @@ class MapPainter extends CustomPainter {
     return myShouldRepaint;
   }
 }
+
+class _RefresherButtons extends ConsumerWidget {
+  const _RefresherButtons({
+    required this.callback,
+  });
+
+  final VoidCallback callback;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Row(
+      children: [
+        HoldDownButton(callback: callback, child: const Icon(Icons.navigate_next_rounded)),
+        Switch(
+          value: ref.watch(_autoRefreshProvider),
+          onChanged: (value) => ref.read(_autoRefreshProvider.notifier).state = value,
+        ),
+      ],
+    );
+  }
+}
+
+final _autoRefreshProvider = StateProvider<bool>((ref) => true);
+
+// the counter is just to indicate change
+final _nextFrameCounter = StateProvider<int>((ref) => 0);

@@ -1,6 +1,10 @@
 name: release app
 
 on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+
   workflow_dispatch:
 
 jobs:
@@ -42,7 +46,7 @@ jobs:
           working-directory: '.'
           dry-run: false
           app-name: 'vegihle_car_sim'
-          app-version: '0.2.0'
+          app-version: ${{ github.ref }}
           build-type: ${{ matrix.build-type }}
           token: ${{ github.token }}
           tag: ${{ github.ref }}

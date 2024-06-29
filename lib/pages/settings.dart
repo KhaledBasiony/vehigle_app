@@ -8,22 +8,28 @@ class SettingsEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final holdDownRepeatDelayField = _DelayDuration(
+    final holdDownRepeatDelayField = _TextConfig(
       labelText: 'Hold Down Repeat Delay (ms)',
       dbKey: holdDownDelayKey,
       isChangedProvider: _holdDownChangedProvider,
     );
 
-    final simulatorReceiveIntervalField = _DelayDuration(
+    final simulatorReceiveIntervalField = _TextConfig(
       labelText: 'Simulator Readings Delay (ms)',
       dbKey: simulatorReadingsDelay,
       isChangedProvider: _simulatorDelayChangedProvider,
     );
 
-    final steeringAngleStepField = _DelayDuration(
+    final steeringAngleStepField = _TextConfig(
       labelText: 'Steering Angle Step',
       dbKey: steeringAngleStep,
       isChangedProvider: _steeringAngleChangedProvider,
+    );
+
+    final useSimulatorSwitcher = _SwitchConfig(
+      labelText: 'Use Simulator',
+      dbKey: useSimulator,
+      isChangedProvider: _useSimulatorChangedProvider,
     );
 
     return SingleChildScrollView(
@@ -42,21 +48,50 @@ class SettingsEditor extends StatelessWidget {
               ),
             ),
           ),
+          const _SectionDivider(title: 'Controls'),
+          const SizedBox(height: 10),
           holdDownRepeatDelayField,
           const SizedBox(height: 10),
-          simulatorReceiveIntervalField,
-          const SizedBox(height: 10),
-          const _ConnectionSimulator(),
-          const SizedBox(height: 10),
           steeringAngleStepField,
+          const SizedBox(height: 10),
+          const _SectionDivider(title: 'Simulator'),
+          useSimulatorSwitcher,
+          const SizedBox(height: 10),
+          simulatorReceiveIntervalField,
         ],
       ),
     );
   }
 }
 
-class _DelayDuration extends ConsumerStatefulWidget {
-  const _DelayDuration({
+class _SectionDivider extends StatelessWidget {
+  const _SectionDivider({
+    required this.title,
+  });
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Row(
+        children: [
+          Text(
+            title,
+            textScaler: const TextScaler.linear(1.2),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+          const Expanded(child: Divider(indent: 10)),
+        ],
+      ),
+    );
+  }
+}
+
+class _TextConfig extends ConsumerStatefulWidget {
+  const _TextConfig({
     required this.labelText,
     required this.dbKey,
     required this.isChangedProvider,
@@ -67,10 +102,10 @@ class _DelayDuration extends ConsumerStatefulWidget {
   final StateProvider<bool> isChangedProvider;
 
   @override
-  ConsumerState<_DelayDuration> createState() => __DelayDurationState();
+  ConsumerState<_TextConfig> createState() => __TextConfigState();
 }
 
-class __DelayDurationState extends ConsumerState<_DelayDuration> {
+class __TextConfigState extends ConsumerState<_TextConfig> {
   late String _initValue;
   late final TextEditingController _delayController;
 
@@ -117,14 +152,22 @@ class __DelayDurationState extends ConsumerState<_DelayDuration> {
   }
 }
 
-class _ConnectionSimulator extends ConsumerStatefulWidget {
-  const _ConnectionSimulator();
+class _SwitchConfig extends ConsumerStatefulWidget {
+  const _SwitchConfig({
+    required this.labelText,
+    required this.dbKey,
+    required this.isChangedProvider,
+  });
+
+  final String labelText;
+  final String dbKey;
+  final StateProvider<bool> isChangedProvider;
 
   @override
-  ConsumerState<_ConnectionSimulator> createState() => __ConnectionSimulatorState();
+  ConsumerState<_SwitchConfig> createState() => __SwitchConfigState();
 }
 
-class __ConnectionSimulatorState extends ConsumerState<_ConnectionSimulator> {
+class __SwitchConfigState extends ConsumerState<_SwitchConfig> {
   late bool _initValue;
   late bool _currentValue;
 
@@ -132,12 +175,12 @@ class __ConnectionSimulatorState extends ConsumerState<_ConnectionSimulator> {
   void initState() {
     super.initState();
 
-    _initValue = _currentValue = Db.instance.read<bool>(useSimulator) ?? false;
+    _initValue = _currentValue = Db.instance.read<bool>(widget.dbKey) ?? false;
   }
 
   void _save() async {
-    await Db.instance.write(useSimulator, _currentValue);
-    ref.read(_useSimulatorChangedProvider.notifier).state = false;
+    await Db.instance.write(widget.dbKey, _currentValue);
+    ref.read(widget.isChangedProvider.notifier).state = false;
     _initValue = _currentValue;
   }
 
@@ -147,19 +190,19 @@ class __ConnectionSimulatorState extends ConsumerState<_ConnectionSimulator> {
       children: [
         Expanded(
           child: SwitchListTile(
-            title: const Text('Use Simulator'),
+            title: Text(widget.labelText),
             value: _currentValue,
             onChanged: (value) {
               setState(() {
                 _currentValue = value;
               });
-              ref.read(_useSimulatorChangedProvider.notifier).state = value != _initValue;
+              ref.read(widget.isChangedProvider.notifier).state = value != _initValue;
             },
           ),
         ),
         IconButton(
           color: Colors.greenAccent,
-          onPressed: ref.watch(_useSimulatorChangedProvider) ? _save : null,
+          onPressed: ref.watch(widget.isChangedProvider) ? _save : null,
           icon: const Icon(Icons.check_rounded),
         ),
       ],

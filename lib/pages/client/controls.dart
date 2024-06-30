@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_car_sim/common/db.dart';
 import 'package:mobile_car_sim/common/provider.dart';
 import 'package:mobile_car_sim/common/shortcuts/actions.dart';
+import 'package:mobile_car_sim/common/theme.dart';
 import 'package:mobile_car_sim/models/client.dart';
 import 'package:mobile_car_sim/common/widgets.dart';
 import 'package:mobile_car_sim/models/simulator.dart';
@@ -62,6 +63,7 @@ class _ControlsCardState extends ConsumerState<ControlsCard> {
       final angle = ref.watch(wheelAngleProvider);
       return RichText(
         text: TextSpan(
+          style: TextStyle(color: AppTheme.instance.theme.colorScheme.onSurfaceVariant),
           text: 'Steering Angle: ',
           children: [
             TextSpan(

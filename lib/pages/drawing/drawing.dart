@@ -6,6 +6,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_car_sim/common/provider.dart';
+import 'package:mobile_car_sim/common/theme.dart';
 import 'package:mobile_car_sim/common/widgets.dart';
 import 'package:mobile_car_sim/models/car.dart';
 
@@ -319,7 +320,7 @@ class ParkingPainter extends CustomPainter {
         height: CarModel.instance.height * scale,
       ),
       paint ?? Paint()
-        ..color = Colors.lightBlue,
+        ..color = AppTheme.instance.primaryColor,
     );
   }
 
@@ -380,7 +381,7 @@ class MapPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint = Paint();
 
-    const baseColor = Colors.white70;
+    final baseColor = AppTheme.instance.theme.colorScheme.onBackground;
     paint.color = baseColor;
 
     // Iterate over history elements.

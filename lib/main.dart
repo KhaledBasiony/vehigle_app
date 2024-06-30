@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_car_sim/common/db.dart';
 import 'package:mobile_car_sim/common/shortcuts/actions.dart';
+import 'package:mobile_car_sim/common/theme.dart';
 import 'package:mobile_car_sim/pages/client/receiver.dart';
 import 'package:mobile_car_sim/pages/client/controls.dart';
 import 'package:mobile_car_sim/pages/connections/wifi.dart';
@@ -23,12 +23,14 @@ class ExampleApplication extends StatelessWidget {
   Widget build(BuildContext context) {
     return ProviderScope(
       child: MaterialApp(
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            brightness: Brightness.dark,
-            seedColor: Colors.blueAccent,
-          ),
-        ),
+        builder: (context, child) {
+          final MediaQueryData data = MediaQuery.of(context);
+          return MediaQuery(
+            data: data.copyWith(textScaler: TextScaler.linear(Db.instance.read<double>(textScaleFactor) ?? 1.0)),
+            child: child!,
+          );
+        },
+        theme: AppTheme.instance.theme,
         home: const MainPage(),
       ),
     );

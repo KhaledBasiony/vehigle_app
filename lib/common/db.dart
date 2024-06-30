@@ -37,3 +37,5 @@ const holdDownDelayKey = 'HoldDownDelay';
 const simulatorReadingsDelay = 'SimulatorDelay';
 const useSimulator = 'UseSimulator';
 const steeringAngleStep = 'SteeringAngleStep';
+const useLightTheme = 'UseLightTheme';
+const textScaleFactor = 'TextScaleFactor';

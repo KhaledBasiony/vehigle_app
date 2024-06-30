@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_car_sim/common/db.dart';
+import 'package:mobile_car_sim/common/theme.dart';
 import 'package:mobile_car_sim/common/widgets.dart';
 
 class SettingsEditor extends StatelessWidget {
@@ -8,28 +9,55 @@ class SettingsEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final holdDownRepeatDelayField = _TextConfig(
+    final holdDownRepeatDelayField = _TextConfig<int>(
       labelText: 'Hold Down Repeat Delay (ms)',
       dbKey: holdDownDelayKey,
       isChangedProvider: _holdDownChangedProvider,
+      valueParser: int.parse,
+      initialValue: 200,
     );
 
-    final simulatorReceiveIntervalField = _TextConfig(
+    final simulatorReceiveIntervalField = _TextConfig<int>(
       labelText: 'Simulator Readings Delay (ms)',
       dbKey: simulatorReadingsDelay,
       isChangedProvider: _simulatorDelayChangedProvider,
+      valueParser: int.parse,
+      initialValue: 100,
     );
 
-    final steeringAngleStepField = _TextConfig(
+    final steeringAngleStepField = _TextConfig<int>(
       labelText: 'Steering Angle Step',
       dbKey: steeringAngleStep,
       isChangedProvider: _steeringAngleChangedProvider,
+      valueParser: int.parse,
+      initialValue: 5,
     );
 
     final useSimulatorSwitcher = _SwitchConfig(
       labelText: 'Use Simulator',
       dbKey: useSimulator,
       isChangedProvider: _useSimulatorChangedProvider,
+    );
+
+    const uiTooltipViewer = Tooltip(
+      message: 'UI Changes may need the application to restart',
+      child: Icon(Icons.warning_amber_rounded),
+    );
+
+    final themeSwitcher = _SwitchConfig(
+      labelText: 'Theme',
+      offText: 'Dark Theme',
+      onText: 'Light Theme',
+      dbKey: useLightTheme,
+      isChangedProvider: _useLightThemeProvider,
+    );
+
+    final textScaleField = _TextConfig<double>(
+      labelText: 'Text Scale Factor',
+      dbKey: textScaleFactor,
+      isChangedProvider: _textScaleChangedProvider,
+      valueParser: (text) => double.parse(text),
+      initialValue: 1.0,
     );
 
     return SingleChildScrollView(
@@ -58,6 +86,16 @@ class SettingsEditor extends StatelessWidget {
           useSimulatorSwitcher,
           const SizedBox(height: 10),
           simulatorReceiveIntervalField,
+          const Row(
+            children: [
+              Expanded(child: _SectionDivider(title: 'UI')),
+              uiTooltipViewer,
+            ],
+          ),
+          const SizedBox(height: 10),
+          themeSwitcher,
+          const SizedBox(height: 10),
+          textScaleField,
         ],
       ),
     );
@@ -90,46 +128,51 @@ class _SectionDivider extends StatelessWidget {
   }
 }
 
-class _TextConfig extends ConsumerStatefulWidget {
+class _TextConfig<T> extends ConsumerStatefulWidget {
   const _TextConfig({
     required this.labelText,
     required this.dbKey,
     required this.isChangedProvider,
+    required this.valueParser,
+    required this.initialValue,
   });
 
   final String labelText;
   final String dbKey;
   final StateProvider<bool> isChangedProvider;
+  final T Function(String text) valueParser;
+  final T initialValue;
 
   @override
-  ConsumerState<_TextConfig> createState() => __TextConfigState();
+  ConsumerState<_TextConfig> createState() => __TextConfigState<T>();
 }
 
-class __TextConfigState extends ConsumerState<_TextConfig> {
+class __TextConfigState<T> extends ConsumerState<_TextConfig> {
   late String _initValue;
-  late final TextEditingController _delayController;
+  late final TextEditingController _controller;
 
   @override
   void initState() {
     super.initState();
 
-    _initValue = (Db.instance.read<int>(widget.dbKey) ?? 500).toString();
-    _delayController = TextEditingController(text: _initValue);
-    _delayController.addListener(() {
-      ref.read(widget.isChangedProvider.notifier).state = _delayController.text != _initValue;
+    _initValue = (Db.instance.read<T>(widget.dbKey) ?? widget.initialValue).toString();
+    _controller = TextEditingController(text: _initValue);
+    _controller.addListener(() {
+      ref.read(widget.isChangedProvider.notifier).state = _controller.text != _initValue;
     });
   }
 
   @override
   void dispose() {
-    _delayController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
   void _save() async {
-    await Db.instance.write(widget.dbKey, int.parse(_delayController.text));
+    final newValue = widget.valueParser(_controller.text);
+    await Db.instance.write(widget.dbKey, newValue);
     ref.read(widget.isChangedProvider.notifier).state = false;
-    _initValue = _delayController.text;
+    _initValue = _controller.text;
   }
 
   @override
@@ -139,11 +182,11 @@ class __TextConfigState extends ConsumerState<_TextConfig> {
         Expanded(
           child: RoundedTextField(
             text: widget.labelText,
-            controller: _delayController,
+            controller: _controller,
           ),
         ),
         IconButton(
-          color: Colors.greenAccent,
+          color: AppTheme.instance.theme.brightness == Brightness.dark ? Colors.greenAccent : Colors.green,
           onPressed: ref.watch(widget.isChangedProvider) ? _save : null,
           icon: const Icon(Icons.check_rounded),
         ),
@@ -157,9 +200,13 @@ class _SwitchConfig extends ConsumerStatefulWidget {
     required this.labelText,
     required this.dbKey,
     required this.isChangedProvider,
+    this.offText,
+    this.onText,
   });
 
   final String labelText;
+  final String? offText;
+  final String? onText;
   final String dbKey;
   final StateProvider<bool> isChangedProvider;
 
@@ -190,7 +237,9 @@ class __SwitchConfigState extends ConsumerState<_SwitchConfig> {
       children: [
         Expanded(
           child: SwitchListTile(
-            title: Text(widget.labelText),
+            title: Text(
+              _currentValue ? widget.onText ?? widget.labelText : widget.offText ?? widget.labelText,
+            ),
             value: _currentValue,
             onChanged: (value) {
               setState(() {
@@ -201,7 +250,7 @@ class __SwitchConfigState extends ConsumerState<_SwitchConfig> {
           ),
         ),
         IconButton(
-          color: Colors.greenAccent,
+          color: AppTheme.instance.theme.brightness == Brightness.dark ? Colors.greenAccent : Colors.green,
           onPressed: ref.watch(widget.isChangedProvider) ? _save : null,
           icon: const Icon(Icons.check_rounded),
         ),
@@ -217,3 +266,7 @@ final _simulatorDelayChangedProvider = StateProvider<bool>((ref) => false);
 final _useSimulatorChangedProvider = StateProvider<bool>((ref) => false);
 
 final _steeringAngleChangedProvider = StateProvider<bool>((ref) => false);
+
+final _useLightThemeProvider = StateProvider<bool>((ref) => false);
+
+final _textScaleChangedProvider = StateProvider<bool>((ref) => false);

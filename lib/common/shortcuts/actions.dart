@@ -16,7 +16,7 @@ class MoveForwardAction extends Action<MoveForwardIntent> {
   @override
   Object? invoke(MoveForwardIntent intent) {
     ref.read(encoderStepProvider.notifier).state += 1;
-    Client.instance.send('f'.codeUnits);
+    Client.instance.send(Db.instance.read<List<int>>(cForwardButton) ?? []);
     return null;
   }
 }
@@ -29,7 +29,7 @@ class MoveBackwardsAction extends Action<MoveBackwardsIntent> {
   @override
   Object? invoke(MoveBackwardsIntent intent) {
     ref.read(encoderStepProvider.notifier).state -= 1;
-    Client.instance.send('r'.codeUnits);
+    Client.instance.send(Db.instance.read<List<int>>(cBackwardsButton) ?? []);
     return null;
   }
 }
@@ -42,7 +42,7 @@ class StopAction extends Action<StopIntent> {
   @override
   Object? invoke(StopIntent intent) {
     ref.read(encoderStepProvider.notifier).state = 0;
-    Client.instance.send('b'.codeUnits);
+    Client.instance.send(Db.instance.read<List<int>>(cBrakesButton) ?? []);
     return null;
   }
 }

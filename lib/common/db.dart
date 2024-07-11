@@ -15,6 +15,20 @@ class Db {
         'Settings',
         path: await getApplicationSupportDirectory().then((value) => value.path),
       );
+
+    _instance!._initiate();
+  }
+
+  void _initiate() {
+    if (read(cForwardButton) == null) {
+      write(cForwardButton, 'f'.codeUnits);
+    }
+    if (read(cBackwardsButton) == null) {
+      write(cBackwardsButton, 'r'.codeUnits);
+    }
+    if (read(cBrakesButton) == null) {
+      write(cBrakesButton, 'b'.codeUnits);
+    }
   }
 
   T? read<T>(String key) {
@@ -39,3 +53,7 @@ const useSimulator = 'UseSimulator';
 const steeringAngleStep = 'SteeringAngleStep';
 const useLightTheme = 'UseLightTheme';
 const textScaleFactor = 'TextScaleFactor';
+
+const cForwardButton = 'ForwardButtonCommand';
+const cBackwardsButton = 'BackwardsButtonCommand';
+const cBrakesButton = 'BrakesButtonCommand';

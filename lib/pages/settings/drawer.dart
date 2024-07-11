@@ -1,8 +1,13 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_car_sim/common/db.dart';
 import 'package:mobile_car_sim/common/theme.dart';
 import 'package:mobile_car_sim/common/widgets.dart';
+
+part 'commands.dart';
 
 class SettingsEditor extends StatelessWidget {
   const SettingsEditor({super.key});
@@ -60,6 +65,18 @@ class SettingsEditor extends StatelessWidget {
       initialValue: 1.0,
     );
 
+    final buttonsCommandsPage = ListTile(
+      title: const Text('Edit Control Buttons Commands'),
+      trailing: const Icon(Icons.arrow_forward_ios_rounded),
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => const _ButtonsCommandsEditor(),
+          ),
+        );
+      },
+    );
+
     return SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -81,6 +98,8 @@ class SettingsEditor extends StatelessWidget {
           holdDownRepeatDelayField,
           const SizedBox(height: 10),
           steeringAngleStepField,
+          const SizedBox(height: 10),
+          buttonsCommandsPage,
           const SizedBox(height: 10),
           const _SectionDivider(title: 'Simulator'),
           useSimulatorSwitcher,
@@ -270,3 +289,9 @@ final _steeringAngleChangedProvider = StateProvider<bool>((ref) => false);
 final _useLightThemeProvider = StateProvider<bool>((ref) => false);
 
 final _textScaleChangedProvider = StateProvider<bool>((ref) => false);
+
+final _forwardCommandChangedProvider = StateProvider<bool>((ref) => false);
+
+final _backwardsCommandChangedProvider = StateProvider<bool>((ref) => false);
+
+final _brakesCommandChangedProvider = StateProvider<bool>((ref) => false);

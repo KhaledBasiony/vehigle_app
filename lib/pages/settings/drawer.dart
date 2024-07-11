@@ -295,3 +295,13 @@ final _forwardCommandChangedProvider = StateProvider<bool>((ref) => false);
 final _backwardsCommandChangedProvider = StateProvider<bool>((ref) => false);
 
 final _brakesCommandChangedProvider = StateProvider<bool>((ref) => false);
+
+final _navigateCommandChangedProvider = StateProvider<bool>((ref) => false);
+
+final _parkCommandChangedProvider = StateProvider<bool>((ref) => false);
+
+final _driveBackCommandChangedProvider = StateProvider<bool>((ref) => false);
+
+final _recordCommandChangedProvider = StateProvider<bool>((ref) => false);
+
+final _replayCommandChangedProvider = StateProvider<bool>((ref) => false);

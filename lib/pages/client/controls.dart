@@ -96,16 +96,18 @@ class _ControlsCardState extends ConsumerState<ControlsCard> {
                   Row(
                     children: [
                       Expanded(
-                          child: _CarState(
-                        onSend: (text) => _send(text.codeUnits),
-                      )),
+                        child: _CarState(
+                          onSend: (text) => _send(text.codeUnits),
+                        ),
+                      ),
                       _MovementButtons(),
                     ],
                   ),
                   Row(
                     children: [
                       Expanded(
-                        child: TextField(
+                        child: RoundedTextField(
+                          text: 'Custom Command',
                           controller: _commandText,
                         ),
                       ),
@@ -333,15 +335,68 @@ class __ReadingsSetterState extends ConsumerState<_ReadingsSetter> {
       if (next == num.tryParse(_encoderController.text) || _encoderController.text.isEmpty) return;
       _encoderController.text = next.toString();
     });
-    final stateSetter = TextFormField(
-      decoration: const InputDecoration(labelText: 'Car State'),
-      controller: _stateController,
-      maxLength: 1,
-      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[012]'))],
-      onChanged: (value) {
-        if (value.isEmpty) return;
-        MockServer.instance.carState.base = int.tryParse(value) ?? 0;
-      },
+
+    final parkingStates = SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          ElevatedButton(
+            onPressed: Actions.handler(context, const NavigateIntent()) ??
+                () {
+                  MockServer.instance.carState.base = 0;
+                },
+            child: const Text('Navigate'),
+          ),
+          ElevatedButton(
+            onPressed: Actions.handler(context, const ParkIntent()) ??
+                () {
+                  MockServer.instance.carState.base = 1;
+                },
+            child: const Text('Auto Park'),
+          ),
+        ],
+      ),
+    );
+
+    final driveBack = ElevatedButton(
+      onPressed: Actions.handler(context, const DriveBackIntent()) ?? () {},
+      child: const Text('Drive Back'),
+    );
+
+    final selfParking = SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          ElevatedButton(
+            onPressed: Actions.handler(context, const StartRecordingIntent()) ?? () {},
+            child: const Text('Record Park'),
+          ),
+          ElevatedButton(
+            onPressed: Actions.handler(context, const ReplayParkIntent()) ?? () {},
+            child: const Text('Replay Park'),
+          ),
+        ],
+      ),
+    );
+
+    final stateSetter = Card(
+      elevation: 4,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            const ListTile(title: Center(child: Text('Car States'))),
+            parkingStates,
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: driveBack,
+            ),
+            selfParking,
+          ],
+        ),
+      ),
     );
 
     final encoder = TextFormField(
@@ -357,8 +412,11 @@ class __ReadingsSetterState extends ConsumerState<_ReadingsSetter> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        stateSetter,
         encoder,
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20.0),
+          child: stateSetter,
+        ),
       ],
     );
   }

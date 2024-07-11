@@ -76,3 +76,58 @@ class TurnRightAction extends Action<TurnRightIntent> {
     return null;
   }
 }
+
+class NavigateAction extends Action<NavigateIntent> {
+  NavigateAction();
+
+  @override
+  Object? invoke(NavigateIntent intent) {
+    final command = Db.instance.read<List<int>>(cNavigateButton);
+    if (command != null) Client.instance.send(command);
+    return null;
+  }
+}
+
+class ParkAction extends Action<ParkIntent> {
+  ParkAction();
+
+  @override
+  Object? invoke(ParkIntent intent) {
+    final command = Db.instance.read<List<int>>(cParkButton);
+    if (command != null) Client.instance.send(command);
+    return null;
+  }
+}
+
+class DriveBackAction extends Action<DriveBackIntent> {
+  DriveBackAction();
+
+  @override
+  Object? invoke(DriveBackIntent intent) {
+    final command = Db.instance.read<List<int>>(cDriveBackButton);
+    if (command != null) Client.instance.send(command);
+    return null;
+  }
+}
+
+class RecordAction extends Action<StartRecordingIntent> {
+  RecordAction();
+
+  @override
+  Object? invoke(StartRecordingIntent intent) {
+    final command = Db.instance.read<List<int>>(cRecordButton);
+    if (command != null) Client.instance.send(command);
+    return null;
+  }
+}
+
+class ReplayAction extends Action<ReplayParkIntent> {
+  ReplayAction();
+
+  @override
+  Object? invoke(ReplayParkIntent intent) {
+    final command = Db.instance.read<List<int>>(cReplayButton);
+    if (command != null) Client.instance.send(command);
+    return null;
+  }
+}

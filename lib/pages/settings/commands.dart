@@ -32,6 +32,31 @@ class _ButtonsCommandsEditor extends StatelessWidget {
                   dbKey: cBrakesButton,
                   isChangedProvider: _brakesCommandChangedProvider,
                 ),
+                _ButtonCommandEntry(
+                  title: 'Navigate Button',
+                  dbKey: cNavigateButton,
+                  isChangedProvider: _navigateCommandChangedProvider,
+                ),
+                _ButtonCommandEntry(
+                  title: 'Park Button',
+                  dbKey: cParkButton,
+                  isChangedProvider: _parkCommandChangedProvider,
+                ),
+                _ButtonCommandEntry(
+                  title: 'Drive Back Button',
+                  dbKey: cDriveBackButton,
+                  isChangedProvider: _driveBackCommandChangedProvider,
+                ),
+                _ButtonCommandEntry(
+                  title: 'Record Parking Button',
+                  dbKey: cRecordButton,
+                  isChangedProvider: _recordCommandChangedProvider,
+                ),
+                _ButtonCommandEntry(
+                  title: 'Replay Park Button',
+                  dbKey: cReplayButton,
+                  isChangedProvider: _replayCommandChangedProvider,
+                ),
               ],
             ),
           ),

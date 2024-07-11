@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_car_sim/common/db.dart';
 import 'package:mobile_car_sim/common/shortcuts/actions.dart';
 import 'package:mobile_car_sim/common/theme.dart';
+import 'package:mobile_car_sim/common/utils.dart';
 import 'package:mobile_car_sim/pages/client/receiver.dart';
 import 'package:mobile_car_sim/pages/client/controls.dart';
 import 'package:mobile_car_sim/pages/connections/wifi.dart';
@@ -53,82 +54,85 @@ class MainPage extends StatelessWidget {
         },
         child: child!,
       ),
-      child: SafeArea(
-        child: Scaffold(
-          drawer: const Padding(
-            padding: EdgeInsetsDirectional.only(end: 50.0),
-            child: Drawer(
-              width: 500,
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 8.0),
-                child: SettingsEditor(),
+      child: PageStorage(
+        bucket: pageBucket,
+        child: SafeArea(
+          child: Scaffold(
+            drawer: const Padding(
+              padding: EdgeInsetsDirectional.only(end: 50.0),
+              child: Drawer(
+                width: 500,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 8.0),
+                  child: SettingsEditor(),
+                ),
               ),
             ),
-          ),
-          appBar: AppBar(
-            title: const Text('Vehigle Sim'),
-            centerTitle: true,
-            leading: Builder(builder: (context) {
-              return IconButton(
-                onPressed: Scaffold.of(context).openDrawer,
-                icon: const Icon(
-                  Icons.settings_rounded,
-                ),
-              );
-            }),
-          ),
-          body: Shortcuts(
-            shortcuts: const {
-              SingleActivator(LogicalKeyboardKey.arrowUp, shift: true): MoveForwardIntent(),
-              SingleActivator(LogicalKeyboardKey.arrowDown, shift: true): MoveBackwardsIntent(),
-              SingleActivator(LogicalKeyboardKey.arrowLeft, shift: true): TurnLeftIntent(),
-              SingleActivator(LogicalKeyboardKey.arrowRight, shift: true): TurnRightIntent(),
-              SingleActivator(LogicalKeyboardKey.space, shift: true): StopIntent(),
-            },
-            child: DefaultTabController(
-              length: 2,
-              child: Column(
-                children: [
-                  const TabBar(
-                    tabs: [
-                      Tab(text: 'Client'),
-                      Tab(text: 'Map'),
-                    ],
+            appBar: AppBar(
+              title: const Text('Vehigle Sim'),
+              centerTitle: true,
+              leading: Builder(builder: (context) {
+                return IconButton(
+                  onPressed: Scaffold.of(context).openDrawer,
+                  icon: const Icon(
+                    Icons.settings_rounded,
                   ),
-                  Expanded(
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final isVertical = constraints.maxWidth < 1000;
-                        final controlConstraints = isVertical
-                            ? BoxConstraints(maxHeight: constraints.maxHeight / 2)
-                            : BoxConstraints(maxWidth: constraints.maxWidth / 2);
-                        return Flex(
-                          direction: isVertical ? Axis.vertical : Axis.horizontal,
-                          children: [
-                            const Expanded(
-                              child: TabBarView(
-                                children: [
-                                  _ClientWidget(),
-                                  MapCanvas(),
-                                ],
-                              ),
-                            ),
-                            ConstrainedBox(
-                              constraints: controlConstraints,
-                              child: const Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: FocusScope(
-                                  autofocus: true,
-                                  child: ControlsCard(),
+                );
+              }),
+            ),
+            body: Shortcuts(
+              shortcuts: const {
+                SingleActivator(LogicalKeyboardKey.arrowUp, shift: true): MoveForwardIntent(),
+                SingleActivator(LogicalKeyboardKey.arrowDown, shift: true): MoveBackwardsIntent(),
+                SingleActivator(LogicalKeyboardKey.arrowLeft, shift: true): TurnLeftIntent(),
+                SingleActivator(LogicalKeyboardKey.arrowRight, shift: true): TurnRightIntent(),
+                SingleActivator(LogicalKeyboardKey.space, shift: true): StopIntent(),
+              },
+              child: DefaultTabController(
+                length: 2,
+                child: Column(
+                  children: [
+                    const TabBar(
+                      tabs: [
+                        Tab(text: 'Client'),
+                        Tab(text: 'Map'),
+                      ],
+                    ),
+                    Expanded(
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final isVertical = constraints.maxWidth < 1000;
+                          final controlConstraints = isVertical
+                              ? BoxConstraints(maxHeight: constraints.maxHeight / 2)
+                              : BoxConstraints(maxWidth: constraints.maxWidth / 2);
+                          return Flex(
+                            direction: isVertical ? Axis.vertical : Axis.horizontal,
+                            children: [
+                              const Expanded(
+                                child: TabBarView(
+                                  children: [
+                                    _ClientWidget(),
+                                    MapCanvas(),
+                                  ],
                                 ),
                               ),
-                            ),
-                          ],
-                        );
-                      },
+                              ConstrainedBox(
+                                constraints: controlConstraints,
+                                child: const Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: FocusScope(
+                                    autofocus: true,
+                                    child: ControlsCard(),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -152,7 +156,11 @@ class _ClientWidget extends StatelessWidget {
           ),
           Padding(
             padding: EdgeInsets.all(8.0),
-            child: ReceiverCard(),
+            child: ValueWatcher(),
+          ),
+          Padding(
+            padding: EdgeInsets.all(8.0),
+            child: MessageLogger(),
           ),
         ],
       ),

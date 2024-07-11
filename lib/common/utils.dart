@@ -1,5 +1,6 @@
 import 'dart:math';
-import 'dart:ui';
+
+import 'package:flutter/material.dart';
 
 Offset arcToOffset(double thetaStart, double thetaDelta, double distance) {
   final thetaEnd = thetaStart + thetaDelta;
@@ -14,3 +15,5 @@ Offset arcToOffset(double thetaStart, double thetaDelta, double distance) {
     throw ArgumentError.value(thetaEnd);
   }
 }
+
+final pageBucket = PageStorageBucket();

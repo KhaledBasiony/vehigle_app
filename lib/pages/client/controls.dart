@@ -1,13 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_joystick/flutter_joystick.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_car_sim/common/db.dart';
 import 'package:mobile_car_sim/common/provider.dart';
 import 'package:mobile_car_sim/common/shortcuts/actions.dart';
 import 'package:mobile_car_sim/common/theme.dart';
+import 'package:mobile_car_sim/models/car.dart';
 import 'package:mobile_car_sim/models/client.dart';
 import 'package:mobile_car_sim/common/widgets.dart';
 import 'package:mobile_car_sim/models/simulator.dart';
@@ -100,7 +102,11 @@ class _ControlsCardState extends ConsumerState<ControlsCard> {
                           onSend: (text) => _send(text.codeUnits),
                         ),
                       ),
-                      _MovementButtons(),
+                      (Db.instance.read<bool>(useJoystick) ?? true)
+                          ? const Flexible(
+                              child: Center(child: _MovementJoystick()),
+                            )
+                          : const _MovementButtons(),
                     ],
                   ),
                   Row(
@@ -158,9 +164,29 @@ class _CarState extends ConsumerWidget {
         ref.read(carStatesProvider.notifier).update(CarStates.parking);
       },
     );
+
+    const underDevelopmentIndicator = Center(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.warning_amber_rounded,
+            color: Colors.amber,
+          ),
+          SizedBox(width: 10),
+          Text('Under Development'),
+          SizedBox(width: 10),
+          Icon(
+            Icons.code_off_rounded,
+            color: Colors.redAccent,
+          ),
+        ],
+      ),
+    );
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        underDevelopmentIndicator,
         const Text('Current State:'),
         currentStateIndicator,
         Visibility(
@@ -172,7 +198,87 @@ class _CarState extends ConsumerWidget {
   }
 }
 
+class _MovementJoystick extends StatelessWidget {
+  const _MovementJoystick();
+
+  void _updateReadings(BuildContext context, StickDragDetails details) {
+    final Function() movementCallback;
+    if (details.y == 0.0) {
+      movementCallback = Actions.handler(context, const StopIntent()) ?? () {};
+    }
+    // NOTE! positive y axis is downwards.
+    else if (details.y < 0) {
+      movementCallback = Actions.handler(context, const MoveForwardIntent()) ?? () {};
+    } else {
+      movementCallback = Actions.handler(context, const MoveBackwardsIntent()) ?? () {};
+    }
+    movementCallback();
+
+    final Function() steeringCallback;
+    final maxSteeringAngle = CarModel.instance.maxSteeringAngle;
+    final steeringStep = Db.instance.read<int>(steeringAngleStep) ?? 1;
+    if (details.x == 0.0) {
+      steeringCallback = Actions.handler(context, const TurnLeftIntent(value: 0)) ?? () {};
+    } else if (details.x < 0) {
+      steeringCallback = Actions.handler(
+            context,
+            // Note: using power 2 to decrease sensitivity at the beginning and increase it at the end
+            TurnLeftIntent(value: (-pow(details.x, 2) * maxSteeringAngle).roundToNearest(steeringStep)),
+          ) ??
+          () {};
+    } else {
+      steeringCallback = Actions.handler(
+            context,
+            TurnRightIntent(value: (pow(details.x, 2) * maxSteeringAngle).roundToNearest(steeringStep)),
+          ) ??
+          () {};
+    }
+    steeringCallback();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const padding = 20.0;
+    return Padding(
+      padding: const EdgeInsets.all(padding),
+      child: LayoutBuilder(
+        builder: (_, constraints) {
+          final side = min(constraints.maxHeight, constraints.maxWidth) - padding;
+
+          final joystickBase = JoystickSquareBase(
+            size: side,
+            decoration: JoystickBaseDecoration(
+              color: AppTheme.instance.theme.colorScheme.primary,
+              drawOuterCircle: false,
+              drawMiddleCircle: false,
+              drawInnerCircle: false,
+              drawArrows: false,
+            ),
+          );
+
+          return Joystick(
+            listener: (details) => _updateReadings(context, details),
+            period: Duration(milliseconds: Db.instance.read(holdDownDelayKey)),
+            includeInitialAnimation: false,
+            base: joystickBase,
+            stickOffsetCalculator: const RectangleStickOffsetCalculator(),
+            stick: JoystickStick(
+              size: side / 4,
+              decoration: JoystickStickDecoration(
+                color: AppTheme.instance.theme.colorScheme.onPrimary,
+                shadowColor: Colors.transparent,
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
 class _MovementButtons extends StatelessWidget {
+  const _MovementButtons();
+
   void _fallbackCallback() {
     print('Action not enabled or not found');
   }
@@ -313,29 +419,21 @@ class _ReadingsSetter extends ConsumerStatefulWidget {
 
 class __ReadingsSetterState extends ConsumerState<_ReadingsSetter> {
   late final TextEditingController _stateController;
-  late final TextEditingController _encoderController;
 
   @override
   void initState() {
     super.initState();
     _stateController = TextEditingController(text: '0');
-    _encoderController = TextEditingController(text: '0');
   }
 
   @override
   void dispose() {
     _stateController.dispose();
-    _encoderController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(encoderStepProvider, (previous, next) {
-      if (next == num.tryParse(_encoderController.text) || _encoderController.text.isEmpty) return;
-      _encoderController.text = next.toString();
-    });
-
     final parkingStates = SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
@@ -349,10 +447,7 @@ class __ReadingsSetterState extends ConsumerState<_ReadingsSetter> {
             child: const Text('Navigate'),
           ),
           ElevatedButton(
-            onPressed: Actions.handler(context, const ParkIntent()) ??
-                () {
-                  MockServer.instance.carState.base = 1;
-                },
+            onPressed: Actions.handler(context, const ParkIntent()) ?? () {},
             child: const Text('Auto Park'),
           ),
         ],
@@ -399,20 +494,9 @@ class __ReadingsSetterState extends ConsumerState<_ReadingsSetter> {
       ),
     );
 
-    final encoder = TextFormField(
-      decoration: const InputDecoration(labelText: 'Encoder Reading'),
-      controller: _encoderController,
-      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9\.-]'))],
-      onChanged: (value) {
-        final step = num.tryParse(value) ?? 0;
-        MockServer.instance.encoderStep = step;
-        ref.read(encoderStepProvider.notifier).state = step;
-      },
-    );
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        encoder,
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 20.0),
           child: stateSetter,
@@ -420,4 +504,8 @@ class __ReadingsSetterState extends ConsumerState<_ReadingsSetter> {
       ],
     );
   }
+}
+
+extension on double {
+  roundToNearest(int n) => (this / n).round() * n;
 }

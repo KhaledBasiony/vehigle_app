@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_car_sim/common/db.dart';
 import 'package:mobile_car_sim/common/theme.dart';
@@ -38,6 +37,14 @@ class SettingsEditor extends StatelessWidget {
       initialValue: 5,
     );
 
+    final maxEncoderReadingField = _TextConfig<double>(
+      labelText: 'Max Encoder Reading',
+      dbKey: maxEncoderReading,
+      isChangedProvider: _maxEncoderReadingChangedProvider,
+      valueParser: double.parse,
+      initialValue: 50,
+    );
+
     final useSimulatorSwitcher = _SwitchConfig(
       labelText: 'Use Simulator',
       dbKey: useSimulator,
@@ -55,6 +62,14 @@ class SettingsEditor extends StatelessWidget {
       onText: 'Light Theme',
       dbKey: useLightTheme,
       isChangedProvider: _useLightThemeProvider,
+    );
+
+    final controlsSwitcher = _SwitchConfig(
+      labelText: 'Controller',
+      offText: 'Buttons',
+      onText: 'Joystick',
+      dbKey: useJoystick,
+      isChangedProvider: _useJoystickProvider,
     );
 
     final textScaleField = _TextConfig<double>(
@@ -99,6 +114,8 @@ class SettingsEditor extends StatelessWidget {
           const SizedBox(height: 10),
           steeringAngleStepField,
           const SizedBox(height: 10),
+          maxEncoderReadingField,
+          const SizedBox(height: 10),
           buttonsCommandsPage,
           const SizedBox(height: 10),
           const _SectionDivider(title: 'Simulator'),
@@ -111,6 +128,8 @@ class SettingsEditor extends StatelessWidget {
               uiTooltipViewer,
             ],
           ),
+          const SizedBox(height: 10),
+          controlsSwitcher,
           const SizedBox(height: 10),
           themeSwitcher,
           const SizedBox(height: 10),
@@ -286,7 +305,11 @@ final _useSimulatorChangedProvider = StateProvider<bool>((ref) => false);
 
 final _steeringAngleChangedProvider = StateProvider<bool>((ref) => false);
 
+final _maxEncoderReadingChangedProvider = StateProvider<bool>((ref) => false);
+
 final _useLightThemeProvider = StateProvider<bool>((ref) => false);
+
+final _useJoystickProvider = StateProvider<bool>((ref) => false);
 
 final _textScaleChangedProvider = StateProvider<bool>((ref) => false);
 

@@ -178,7 +178,7 @@ class MockServer {
   }
 
   _moveForward() {
-    _encoderStep += 1;
+    _encoderStep = Db.instance.read<double>(maxEncoderReading) ?? 5;
   }
 
   _brakes() {
@@ -186,7 +186,7 @@ class MockServer {
   }
 
   _moveBackwards() {
-    _encoderStep -= 1;
+    _encoderStep = -(Db.instance.read<double>(maxEncoderReading) ?? 5);
   }
 }
 

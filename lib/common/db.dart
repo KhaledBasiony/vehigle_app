@@ -51,7 +51,9 @@ const holdDownDelayKey = 'HoldDownDelay';
 const simulatorReadingsDelay = 'SimulatorDelay';
 const useSimulator = 'UseSimulator';
 const steeringAngleStep = 'SteeringAngleStep';
+const maxEncoderReading = 'MaxEncoderReading';
 const useLightTheme = 'UseLightTheme';
+const useJoystick = 'UseJoyStick';
 const textScaleFactor = 'TextScaleFactor';
 
 const cForwardButton = 'ForwardButtonCommand';

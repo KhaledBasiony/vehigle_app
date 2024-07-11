@@ -14,7 +14,7 @@ dependencies:
 
   cupertino_icons: ^1.0.2
   convert: ^3.1.1
-  intl: ^0.18.1
+  flutter_joystick: ^0.2.0
   flutter_riverpod: ^2.4.9
   network_info_plus: ^5.0.3
   wifi_info_plugin_plus: ^2.0.2

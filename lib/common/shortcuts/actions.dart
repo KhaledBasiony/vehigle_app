@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_car_sim/common/db.dart';
 import 'package:mobile_car_sim/common/provider.dart';
 import 'package:mobile_car_sim/models/client.dart';
+import 'package:mobile_car_sim/models/simulator.dart';
 
 part 'intents.dart';
 
@@ -15,7 +16,8 @@ class MoveForwardAction extends Action<MoveForwardIntent> {
 
   @override
   Object? invoke(MoveForwardIntent intent) {
-    ref.read(encoderStepProvider.notifier).state += 1;
+    final notifier = ref.read(encoderStepProvider.notifier);
+    notifier.state = Db.instance.read<double>(maxEncoderReading) ?? 5;
     Client.instance.send(Db.instance.read<List<int>>(cForwardButton) ?? []);
     return null;
   }
@@ -28,7 +30,8 @@ class MoveBackwardsAction extends Action<MoveBackwardsIntent> {
 
   @override
   Object? invoke(MoveBackwardsIntent intent) {
-    ref.read(encoderStepProvider.notifier).state -= 1;
+    final notifier = ref.read(encoderStepProvider.notifier);
+    notifier.state = -(Db.instance.read<double>(maxEncoderReading) ?? 5);
     Client.instance.send(Db.instance.read<List<int>>(cBackwardsButton) ?? []);
     return null;
   }
@@ -56,7 +59,10 @@ class TurnLeftAction extends Action<TurnLeftIntent> {
   Object? invoke(TurnLeftIntent intent) {
     final angleNotifier = ref.read(wheelAngleProvider.notifier);
     final angleStep = Db.instance.read<int>(steeringAngleStep) ?? 1;
-    angleNotifier.state = max(angleNotifier.state - angleStep, -40);
+    angleNotifier.state = switch (intent.updateType) {
+      UpdateType.increment => max(angleNotifier.state - angleStep, -40),
+      UpdateType.set => max(intent.value!, -40),
+    };
     Client.instance.send([angleNotifier.state + 40]);
     return null;
   }
@@ -71,7 +77,10 @@ class TurnRightAction extends Action<TurnRightIntent> {
   Object? invoke(TurnRightIntent intent) {
     final angleNotifier = ref.read(wheelAngleProvider.notifier);
     final angleStep = Db.instance.read<int>(steeringAngleStep) ?? 1;
-    angleNotifier.state = min(angleNotifier.state + angleStep, 40);
+    angleNotifier.state = switch (intent.updateType) {
+      UpdateType.increment => min(angleNotifier.state + angleStep, 40),
+      UpdateType.set => min(intent.value!, 40),
+    };
     Client.instance.send([angleNotifier.state + 40]);
     return null;
   }
@@ -84,6 +93,8 @@ class NavigateAction extends Action<NavigateIntent> {
   Object? invoke(NavigateIntent intent) {
     final command = Db.instance.read<List<int>>(cNavigateButton);
     if (command != null) Client.instance.send(command);
+    MockServer.instance.carState.base = 0;
+
     return null;
   }
 }
@@ -95,6 +106,8 @@ class ParkAction extends Action<ParkIntent> {
   Object? invoke(ParkIntent intent) {
     final command = Db.instance.read<List<int>>(cParkButton);
     if (command != null) Client.instance.send(command);
+    MockServer.instance.carState.base = 1;
+
     return null;
   }
 }

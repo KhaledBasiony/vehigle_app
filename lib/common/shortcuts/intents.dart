@@ -1,5 +1,7 @@
 part of 'actions.dart';
 
+enum UpdateType { increment, set }
+
 class MoveForwardIntent extends Intent {
   const MoveForwardIntent();
 }
@@ -9,11 +11,17 @@ class MoveBackwardsIntent extends Intent {
 }
 
 class TurnLeftIntent extends Intent {
-  const TurnLeftIntent();
+  const TurnLeftIntent({this.value}) : updateType = value == null ? UpdateType.increment : UpdateType.set;
+
+  final int? value;
+  final UpdateType updateType;
 }
 
 class TurnRightIntent extends Intent {
-  const TurnRightIntent();
+  const TurnRightIntent({this.value}) : updateType = value == null ? UpdateType.increment : UpdateType.set;
+
+  final int? value;
+  final UpdateType updateType;
 }
 
 class StopIntent extends Intent {

@@ -121,7 +121,7 @@ class _ControlsCardState extends ConsumerState<ControlsCard> {
                       IconButton(onPressed: _send, icon: const Icon(Icons.send_outlined))
                     ],
                   ),
-                  if (Db.instance.read<bool>(useSimulator) ?? false) const _ReadingsSetter(),
+                  const _ReadingsSetter(),
                 ],
               ),
             ),

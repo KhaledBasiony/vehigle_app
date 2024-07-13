@@ -354,7 +354,9 @@ class __OnOffSwitchState extends ConsumerState<_OnOffSwitch> {
     ref.read(messagesProvider.notifier).add(lastReading);
 
     final data = jsonDecode(lastReading) as Map<String, dynamic>;
-    ref.read(carStatesProvider.notifier).update(CarStates.values.elementAt(data['PHS'] as int));
+    if (data.containsKey('PHS')) {
+      ref.read(carStatesProvider.notifier).update(CarStates.values.elementAt(data['PHS'] as int));
+    }
   }
 
   @override

@@ -63,7 +63,7 @@ class TurnLeftAction extends Action<TurnLeftIntent> {
       UpdateType.increment => max(angleNotifier.state - angleStep, -40),
       UpdateType.set => max(intent.value!, -40),
     };
-    Client.instance.send([angleNotifier.state + 40]);
+    Client.instance.send([angleNotifier.state + 41]);
     return null;
   }
 }
@@ -81,7 +81,7 @@ class TurnRightAction extends Action<TurnRightIntent> {
       UpdateType.increment => min(angleNotifier.state + angleStep, 40),
       UpdateType.set => min(intent.value!, 40),
     };
-    Client.instance.send([angleNotifier.state + 40]);
+    Client.instance.send([angleNotifier.state + 41]);
     return null;
   }
 }

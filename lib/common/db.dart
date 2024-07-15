@@ -64,3 +64,6 @@ const cParkButton = 'ParkButtonCommand';
 const cDriveBackButton = 'DriveBackButtonCommand';
 const cRecordButton = 'RecordButtonCommand';
 const cReplayButton = 'ReplayButtonCommand';
+
+const cExpectJson = 'ExpectJson';
+const cBytesToJson = 'BytesToJson';

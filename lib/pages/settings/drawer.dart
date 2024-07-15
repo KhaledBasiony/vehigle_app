@@ -1,12 +1,16 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_car_sim/common/db.dart';
 import 'package:mobile_car_sim/common/theme.dart';
 import 'package:mobile_car_sim/common/widgets.dart';
 
+import 'mapper_model.dart';
+
 part 'commands.dart';
+part 'bytes_to_json.dart';
 
 class SettingsEditor extends StatelessWidget {
   const SettingsEditor({super.key});
@@ -92,6 +96,26 @@ class SettingsEditor extends StatelessWidget {
       },
     );
 
+    final byteToJsonPage = ListTile(
+      title: const Text('Edit Bytes to Json Mapper'),
+      trailing: const Icon(Icons.arrow_forward_ios_rounded),
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => const _BytesToJsonEditor(),
+          ),
+        );
+      },
+    );
+
+    final expectJson = _SwitchConfig(
+      labelText: 'Received Type',
+      offText: 'Receive Bytes',
+      onText: 'Receive Json',
+      dbKey: cExpectJson,
+      isChangedProvider: _expectJsonChangedProvider,
+    );
+
     return SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -117,7 +141,11 @@ class SettingsEditor extends StatelessWidget {
           maxEncoderReadingField,
           const SizedBox(height: 10),
           buttonsCommandsPage,
+          const _SectionDivider(title: 'Connection'),
           const SizedBox(height: 10),
+          expectJson,
+          const SizedBox(height: 10),
+          byteToJsonPage,
           const _SectionDivider(title: 'Simulator'),
           useSimulatorSwitcher,
           const SizedBox(height: 10),
@@ -306,6 +334,8 @@ final _useSimulatorChangedProvider = StateProvider<bool>((ref) => false);
 final _steeringAngleChangedProvider = StateProvider<bool>((ref) => false);
 
 final _maxEncoderReadingChangedProvider = StateProvider<bool>((ref) => false);
+
+final _expectJsonChangedProvider = StateProvider<bool>((ref) => false);
 
 final _useLightThemeProvider = StateProvider<bool>((ref) => false);
 

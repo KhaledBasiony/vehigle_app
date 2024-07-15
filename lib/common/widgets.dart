@@ -91,12 +91,14 @@ class RoundedTextField extends StatelessWidget {
     super.key,
     required this.text,
     required this.controller,
+    this.onChanged,
     InputType? inputType,
   }) : inputType = inputType ?? InputType.strings;
 
   final String text;
   final TextEditingController controller;
   final InputType inputType;
+  final void Function(String)? onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -112,6 +114,7 @@ class RoundedTextField extends StatelessWidget {
         _ => (_) => null,
       },
       autovalidateMode: AutovalidateMode.onUserInteraction,
+      onChanged: onChanged,
       decoration: InputDecoration(
         border: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(48)),

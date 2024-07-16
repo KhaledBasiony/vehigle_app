@@ -340,20 +340,19 @@ class __OnOffSwitchState extends ConsumerState<_OnOffSwitch> {
   void initState() {
     super.initState();
 
-    Client.instance.addCallback(_receiveMessage);
+    Client.instance.addCallback(_receiveJson);
   }
 
   // receiving here because this widget is always visible while connected,
   // therefore `ref` is always available.
-  void _receiveMessage(String text) {
+  void _receiveJson(String jsonEncodedText) {
     if (!_value) return;
 
-    final lastReading = RegExp('.*({.*?})').firstMatch(text)?.group(1);
-    if (lastReading == null) return; // <== should never happen
+    if (jsonEncodedText.isEmpty) return; // <== should never happen
 
-    ref.read(messagesProvider.notifier).add(lastReading);
+    ref.read(messagesProvider.notifier).add(jsonEncodedText);
 
-    final data = jsonDecode(lastReading) as Map<String, dynamic>;
+    final data = jsonDecode(jsonEncodedText) as Map<String, dynamic>;
     if (data.containsKey('PHS')) {
       ref.read(carStatesProvider.notifier).update(CarStates.values.elementAt(data['PHS'] as int));
     }

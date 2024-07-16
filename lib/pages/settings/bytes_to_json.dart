@@ -73,7 +73,6 @@ class _BytesToJsonEditorState extends State<_BytesToJsonEditor> {
     final index = _valueMappers.indexOf(mapper);
     final currentState = Db.instance.read<List>(cBytesToJson)!;
     currentState[index] = newValue;
-    print(newValue);
     Db.instance.write(cBytesToJson, currentState);
   }
 

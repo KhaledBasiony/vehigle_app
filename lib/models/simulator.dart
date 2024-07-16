@@ -199,7 +199,7 @@ class MockServer {
   void _steer(int angle) {
     // WARNING: this is not realistic, in reality this should change the wheels steering angles
     // but for simulation purposes it will change the compass angle
-    _steeringAngle = angle - 40;
+    _steeringAngle = angle - 41;
   }
 
   _moveForward() {

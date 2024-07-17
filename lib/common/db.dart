@@ -52,6 +52,7 @@ const simulatorReadingsDelay = 'SimulatorDelay';
 const useSimulator = 'UseSimulator';
 const steeringAngleStep = 'SteeringAngleStep';
 const maxEncoderReading = 'MaxEncoderReading';
+const maxSensorsReading = 'MaxSensorReading';
 const useLightTheme = 'UseLightTheme';
 const useJoystick = 'UseJoyStick';
 const textScaleFactor = 'TextScaleFactor';
@@ -67,3 +68,4 @@ const cReplayButton = 'ReplayButtonCommand';
 
 const cExpectJson = 'ExpectJson';
 const cBytesToJson = 'BytesToJson';
+const endDelimiterCharacter = 'EndDelimiterCharacter';

@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_car_sim/common/db.dart';
 import 'package:mobile_car_sim/common/theme.dart';
@@ -47,6 +46,14 @@ class SettingsEditor extends StatelessWidget {
       isChangedProvider: _maxEncoderReadingChangedProvider,
       valueParser: double.parse,
       initialValue: 50,
+    );
+
+    final maxSensorReadingField = _TextConfig(
+      labelText: 'Max Sensor Reading',
+      dbKey: maxSensorsReading,
+      isChangedProvider: _maxSensorReadingChangedProvider,
+      valueParser: double.parse,
+      initialValue: 200,
     );
 
     final useSimulatorSwitcher = _SwitchConfig(
@@ -116,6 +123,14 @@ class SettingsEditor extends StatelessWidget {
       isChangedProvider: _expectJsonChangedProvider,
     );
 
+    final endDelimiterField = _TextConfig(
+      labelText: 'End Delimiter Character Code',
+      dbKey: endDelimiterCharacter,
+      isChangedProvider: _endDelimiterChangedProvider,
+      valueParser: int.parse,
+      initialValue: '*'.codeUnits.first,
+    );
+
     return SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -140,12 +155,16 @@ class SettingsEditor extends StatelessWidget {
           const SizedBox(height: 10),
           maxEncoderReadingField,
           const SizedBox(height: 10),
+          maxSensorReadingField,
+          const SizedBox(height: 10),
           buttonsCommandsPage,
           const _SectionDivider(title: 'Connection'),
           const SizedBox(height: 10),
           expectJson,
           const SizedBox(height: 10),
           byteToJsonPage,
+          const SizedBox(height: 10),
+          endDelimiterField,
           const _SectionDivider(title: 'Simulator'),
           useSimulatorSwitcher,
           const SizedBox(height: 10),
@@ -334,6 +353,10 @@ final _useSimulatorChangedProvider = StateProvider<bool>((ref) => false);
 final _steeringAngleChangedProvider = StateProvider<bool>((ref) => false);
 
 final _maxEncoderReadingChangedProvider = StateProvider<bool>((ref) => false);
+
+final _maxSensorReadingChangedProvider = StateProvider<bool>((ref) => false);
+
+final _endDelimiterChangedProvider = StateProvider<bool>((ref) => false);
 
 final _expectJsonChangedProvider = StateProvider<bool>((ref) => false);
 

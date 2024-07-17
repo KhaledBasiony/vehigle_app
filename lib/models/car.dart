@@ -2,13 +2,15 @@ import 'dart:collection';
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:mobile_car_sim/common/db.dart';
+
 class CarModel {
   CarModel._();
   static CarModel? _instance;
   static CarModel get instance => _instance ??= CarModel._();
 
   static const maxHistory = 50;
-  static const maxSensorReading = 200;
+  static get maxReading => Db.instance.read<double>(maxSensorsReading) ?? 200;
 
   final double width = 20;
   final double height = 40;

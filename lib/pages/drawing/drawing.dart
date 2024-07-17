@@ -28,7 +28,7 @@ class MapCanvas extends ConsumerWidget {
             : edgeInsets.left + edgeInsets.right;
 
         final netCanvasSide = canvasSide - 2 * sidePadding - 2 * borderWidth;
-        MapModel.instance.scale = netCanvasSide / (CarModel.maxSensorReading * 2 + CarModel.instance.height);
+        MapModel.instance.scale = netCanvasSide / (CarModel.maxReading * 2 + CarModel.instance.height);
 
         final borderRadius = BorderRadius.circular(20);
         return Stack(
@@ -75,6 +75,48 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
   Offset? carLocation;
   double? yaw;
 
+  double _radiusFromDist(double dist, double angle) {
+    return dist / angle;
+  }
+
+  double _radiusFromXY(double x, double y, double angle) {
+    final hyp = sqrt(pow(x, 2) + pow(y, 2));
+    final phi = atan2(y, x);
+    return hyp * sin(angle * pi / 180) / sin(phi * pi / 180);
+  }
+
+  void _transfromMapXY(double x, double y, double angle) {
+    if (angle < -pi || angle > pi) {
+      print('Warning! angle must be from -Pi to Pi, received $angle, ignoring');
+    }
+    if (y == 0) {
+      return;
+    }
+    if (angle == 0) {
+      // only move car linearly front or backwards.
+      CarModel.instance.readingsHistory = Queue.of(
+        CarModel.instance.readingsHistory.map(
+          (sensorReadings) => sensorReadings.translate(0, y.toDouble() * MapModel.instance.scale),
+        ),
+      );
+    } else {
+      // car is moving on an arc.
+
+      final radius = _radiusFromXY(x, y, angle);
+      final rotationCenter = Offset(
+        radius * MapModel.instance.scale,
+        CarModel.instance.centerToAxle * MapModel.instance.scale,
+      );
+
+      CarModel.instance.latestRotationCenter = rotationCenter;
+      CarModel.instance.readingsHistory = Queue.of(
+        CarModel.instance.readingsHistory.map(
+          (sensorReadings) => sensorReadings.rotateAbout(rotationCenter, angle),
+        ),
+      );
+    }
+  }
+
   void _transfromMap(double dist, double angle) {
     if (angle < -pi || angle > pi) {
       print('Warning! angle must be from -Pi to Pi, received $angle, ignoring');
@@ -92,7 +134,7 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
     } else {
       // car is moving on an arc.
 
-      final radius = dist / angle;
+      final radius = _radiusFromDist(dist, angle);
       final rotationCenter = Offset(
         radius * MapModel.instance.scale,
         CarModel.instance.centerToAxle * MapModel.instance.scale,
@@ -124,10 +166,10 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
         CarModel.instance.readingsHistory.removeLast();
       }
 
-      final newX = (readings['dX'] as num).toDouble();
-      final newY = (readings['dY'] as num).toDouble();
-      final encoderReading = (readings['ENC'] as num).toDouble();
-      final compassReading = (readings['CMPS'] as num).toDouble();
+      final newX = (readings['dX'] as num? ?? 0).toDouble();
+      final newY = (readings['dY'] as num? ?? 0).toDouble();
+      final encoderReading = (readings['ENC'] as num? ?? 0).toDouble();
+      final compassReading = (readings['CMPS'] as num? ?? 0).toDouble();
       final prevEncoderReading = (prevReadings?['ENC'] as num?)?.toDouble();
       final prevCompassReading = (prevReadings?['CMPS'] as num?)?.toDouble();
 
@@ -137,18 +179,20 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
       if (ref.read(carStatesProvider) == CarStates.searching) {
         CarModel.instance.readingsHistory.addFirst(
           SensorOffsets.fromReadings(
-            frontLeft: (readings['LF'] as num).toDouble() * CarModel.maxSensorReading,
-            frontCenter: (readings['CF'] as num).toDouble() * CarModel.maxSensorReading,
-            frontRight: (readings['RF'] as num).toDouble() * CarModel.maxSensorReading,
-            backLeft: (readings['LB'] as num).toDouble() * CarModel.maxSensorReading,
-            backCenter: (readings['CB'] as num).toDouble() * CarModel.maxSensorReading,
-            backRight: (readings['RB'] as num).toDouble() * CarModel.maxSensorReading,
-            right: (readings['RC'] as num).toDouble() * CarModel.maxSensorReading,
-            left: (readings['LC'] as num).toDouble() * CarModel.maxSensorReading,
+            frontLeft: (readings['LF'] as num? ?? 0).toDouble() * CarModel.maxReading,
+            frontCenter: (readings['CF'] as num? ?? 0).toDouble() * CarModel.maxReading,
+            frontRight: (readings['RF'] as num? ?? 0).toDouble() * CarModel.maxReading,
+            backLeft: (readings['LB'] as num? ?? 0).toDouble() * CarModel.maxReading,
+            backCenter: (readings['CB'] as num? ?? 0).toDouble() * CarModel.maxReading,
+            backRight: (readings['RB'] as num? ?? 0).toDouble() * CarModel.maxReading,
+            right: (readings['RC'] as num? ?? 0).toDouble() * CarModel.maxReading,
+            left: (readings['LC'] as num? ?? 0).toDouble() * CarModel.maxReading,
           ),
         );
         carLocation = null;
         yaw = null;
+        print('${_radiusFromDist(encoderDiff, angleDiff)}, ${_radiusFromXY(newX, newY, angleDiff)}');
+        // _transfromMapXY(newX, newY, angleDiff);
         _transfromMap(encoderDiff.toDouble(), angleDiff);
       } else if (angleDiff == 0) {
         final newOffset = Offset(newX, -newY);

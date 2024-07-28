@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -326,46 +325,18 @@ class _MovementButtons extends StatelessWidget {
   }
 }
 
-class _OnOffSwitch extends ConsumerStatefulWidget {
+class _OnOffSwitch extends ConsumerWidget {
   const _OnOffSwitch();
 
   @override
-  ConsumerState<_OnOffSwitch> createState() => __OnOffSwitchState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isReceiving = ref.watch(isReceivingProvider);
 
-class __OnOffSwitchState extends ConsumerState<_OnOffSwitch> {
-  bool _value = false;
-
-  @override
-  void initState() {
-    super.initState();
-
-    Client.instance.addCallback(_receiveJson);
-  }
-
-  // receiving here because this widget is always visible while connected,
-  // therefore `ref` is always available.
-  void _receiveJson(String jsonEncodedText) {
-    if (!_value) return;
-
-    if (jsonEncodedText.isEmpty) return; // <== should never happen
-
-    ref.read(messagesProvider.notifier).add(jsonEncodedText);
-
-    final data = jsonDecode(jsonEncodedText) as Map<String, dynamic>;
-    if (data.containsKey('PHS')) {
-      ref.read(carStatesProvider.notifier).update(CarStates.values.elementAt(data['PHS'] as int));
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
     final switchButton = Switch(
-      value: _value,
+      value: isReceiving,
       onChanged: (newValue) {
-        setState(() {
-          _value = newValue;
-        });
+        ref.read(isReceivingProvider.notifier).state = newValue;
+        Actions.invoke(context, SwitchReceivingIntent(newValue));
       },
     );
 
@@ -397,10 +368,10 @@ class __OnOffSwitchState extends ConsumerState<_OnOffSwitch> {
         ),
         AnimatedSwitcher(
           duration: Durations.short3,
-          child: _value ? onIcon : offIcon,
+          child: isReceiving ? onIcon : offIcon,
         ),
         const SizedBox(width: 4),
-        _value ? onText : offText,
+        isReceiving ? onText : offText,
       ],
     );
   }

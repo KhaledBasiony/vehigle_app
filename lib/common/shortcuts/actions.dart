@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -141,6 +142,31 @@ class ReplayAction extends Action<ReplayParkIntent> {
   Object? invoke(ReplayParkIntent intent) {
     final command = Db.instance.read<List<int>>(cReplayButton);
     if (command != null) Client.instance.send(command);
+    return null;
+  }
+}
+
+class SwitchReceivingAction extends Action<SwitchReceivingIntent> {
+  SwitchReceivingAction({required this.ref});
+
+  final WidgetRef ref;
+
+  void _receiveJson(String jsonEncodedText, WidgetRef ref) {
+    if (!ref.read(isReceivingProvider)) return;
+
+    if (jsonEncodedText.isEmpty) return; // <== should never happen
+
+    ref.read(messagesProvider.notifier).add(jsonEncodedText);
+
+    final data = jsonDecode(jsonEncodedText) as Map<String, dynamic>;
+    if (data.containsKey('PHS')) {
+      ref.read(carStatesProvider.notifier).update(CarStates.values.elementAt(data['PHS'] as int));
+    }
+  }
+
+  @override
+  Object? invoke(SwitchReceivingIntent intent) {
+    if (intent.isReceiving) Client.instance.addCallback((text) => _receiveJson(text, ref));
     return null;
   }
 }

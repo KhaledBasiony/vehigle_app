@@ -2,6 +2,15 @@ import 'dart:math';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+class Message {
+  Message({
+    required this.text,
+    DateTime? receivedAt,
+  }) : receivedAt = receivedAt ?? DateTime.now();
+  final String text;
+  final DateTime receivedAt;
+}
+
 class MessageNotifier extends Notifier<List<Message>> {
   @override
   List<Message> build() {
@@ -56,15 +65,9 @@ final isRunningProvider = StateNotifierProvider<RunningStateNotifier, bool>((ref
 });
 
 final isConnectedProvider = StateProvider((ref) => false);
+final isReceivingProvider = StateProvider((ref) => false);
 
 final wheelAngleProvider = StateProvider<int>((ref) => 0);
 final encoderStepProvider = StateProvider<num>((ref) => 0.0);
 
-class Message {
-  Message({
-    required this.text,
-    DateTime? receivedAt,
-  }) : receivedAt = receivedAt ?? DateTime.now();
-  final String text;
-  final DateTime receivedAt;
-}
+final isFullScreenProvider = StateProvider<bool>((ref) => false);

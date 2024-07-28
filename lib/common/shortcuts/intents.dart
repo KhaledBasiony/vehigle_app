@@ -47,3 +47,9 @@ class StartRecordingIntent extends Intent {
 class ReplayParkIntent extends Intent {
   const ReplayParkIntent();
 }
+
+class SwitchReceivingIntent extends Intent {
+  const SwitchReceivingIntent(this.isReceiving);
+
+  final bool isReceiving;
+}

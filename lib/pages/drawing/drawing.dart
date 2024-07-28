@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_car_sim/common/provider.dart';
 import 'package:mobile_car_sim/common/theme.dart';
-import 'package:mobile_car_sim/common/widgets.dart';
 import 'package:mobile_car_sim/models/car.dart';
 
 class MapCanvas extends ConsumerWidget {
@@ -56,7 +55,10 @@ class MapCanvas extends ConsumerWidget {
                 ),
               ),
             ),
-            _RefresherButtons(callback: () => ref.read(_nextFrameCounter.notifier).state += 1),
+            const Align(
+              alignment: AlignmentDirectional.topEnd,
+              child: _FullScreenSwitcher(),
+            ),
           ],
         );
       },
@@ -151,11 +153,6 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(_nextFrameCounter, (previous, next) {
-      if (next != previous) {
-        setState(() {});
-      }
-    });
     ref.listen(messagesProvider, (_, next) {
       final prevReadings = jsonDecode(
         next.elementAtOrNull(max(next.length - 2, 0))?.text ?? '{}',
@@ -191,7 +188,6 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
         );
         carLocation = null;
         yaw = null;
-        print('${_radiusFromDist(encoderDiff, angleDiff)}, ${_radiusFromXY(newX, newY, angleDiff)}');
         // _transfromMapXY(newX, newY, angleDiff);
         _transfromMap(encoderDiff.toDouble(), angleDiff);
       } else if (angleDiff == 0) {
@@ -204,9 +200,7 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
         yaw = compassReading * pi / 180;
       }
 
-      if (ref.read(_autoRefreshProvider)) {
-        setState(() {});
-      }
+      setState(() {});
     });
 
     final searchingPaint = CustomPaint(
@@ -467,28 +461,30 @@ class MapPainter extends CustomPainter {
   }
 }
 
-class _RefresherButtons extends ConsumerWidget {
-  const _RefresherButtons({
-    required this.callback,
-  });
-
-  final VoidCallback callback;
+class _FullScreenSwitcher extends ConsumerWidget {
+  const _FullScreenSwitcher();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Row(
-      children: [
-        HoldDownButton(callback: callback, child: const Icon(Icons.navigate_next_rounded)),
-        Switch(
-          value: ref.watch(_autoRefreshProvider),
-          onChanged: (value) => ref.read(_autoRefreshProvider.notifier).state = value,
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: IconButton.filledTonal(
+        iconSize: 30,
+        tooltip: 'Toggle Fullscreen',
+        onPressed: () => ref.read(isFullScreenProvider.notifier).state ^= true,
+        icon: AnimatedSwitcher(
+          duration: Durations.medium2,
+          child: ref.watch(isFullScreenProvider)
+              ? const Icon(
+                  key: ValueKey('FullScreen-Off'),
+                  Icons.fullscreen_exit_rounded,
+                )
+              : const Icon(
+                  key: ValueKey('FullScreen-On'),
+                  Icons.fullscreen_rounded,
+                ),
         ),
-      ],
+      ),
     );
   }
 }
-
-final _autoRefreshProvider = StateProvider<bool>((ref) => true);
-
-// the counter is just to indicate change
-final _nextFrameCounter = StateProvider<int>((ref) => 0);

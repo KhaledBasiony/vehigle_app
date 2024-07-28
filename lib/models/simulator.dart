@@ -5,6 +5,7 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui';
 
+import 'package:flutter/material.dart';
 import 'package:mobile_car_sim/common/db.dart';
 import 'package:mobile_car_sim/common/utils.dart';
 import 'package:mobile_car_sim/models/car.dart';
@@ -21,7 +22,7 @@ class MockServer {
 
   ServerSocket? _socket;
   Socket? clientSocket;
-  late Timer _timer;
+  Timer? _timer;
   final String ip;
   final int port;
   final rng = Random();
@@ -52,6 +53,7 @@ class MockServer {
   num _encoderStep = 0;
 
   Future<void> up() async {
+    _timer?.cancel();
     _timer = Timer.periodic(Duration(milliseconds: Db.instance.read<int>(simulatorReadingsDelay) ?? 50), (timer) {
       _sendData();
     });
@@ -78,7 +80,7 @@ class MockServer {
       print('Mock Server is no Up, ignoring');
       return;
     }
-    _timer.cancel();
+    _timer?.cancel();
     clientSocket?.destroy();
     await _socket?.close();
     clientSocket = null;

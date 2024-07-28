@@ -120,10 +120,7 @@ class MainPage extends ConsumerWidget {
                 constraints: controlConstraints,
                 child: const Padding(
                   padding: EdgeInsets.all(8.0),
-                  child: FocusScope(
-                    autofocus: true,
-                    child: ControlsCard(),
-                  ),
+                  child: ControlsCard(),
                 ),
               );
 
@@ -166,11 +163,14 @@ class MainPage extends ConsumerWidget {
               appBar: isFullScreen ? null : appBar,
               body: DefaultTabController(
                 length: 2,
-                child: AnimatedSwitcher(
-                  duration: Durations.long4,
-                  switchInCurve: Curves.easeInOutCubic,
-                  switchOutCurve: Curves.easeInOutCubic,
-                  child: isFullScreen ? fullScreenBody : normalBody,
+                child: FocusScope(
+                  autofocus: true,
+                  child: AnimatedSwitcher(
+                    duration: Durations.long4,
+                    switchInCurve: Curves.easeInOutCubic,
+                    switchOutCurve: Curves.easeInOutCubic,
+                    child: isFullScreen ? fullScreenBody : normalBody,
+                  ),
                 ),
               ),
             ),

@@ -67,6 +67,8 @@ class _WifiDataCardState extends ConsumerState<WifiDataCard> {
     try {
       await Client.connect(_gateway!, port);
       ref.read(isConnectedProvider.notifier).state = true;
+      ref.read(isReceivingProvider.notifier).state = false;
+      ref.read(wheelAngleProvider.notifier).state = 0;
     } catch (e) {
       if (mounted) {
         await showDialog(

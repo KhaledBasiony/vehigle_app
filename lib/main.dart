@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_car_sim/common/db.dart';
 import 'package:mobile_car_sim/common/provider.dart';
 import 'package:mobile_car_sim/common/shortcuts/actions.dart';
 import 'package:mobile_car_sim/common/theme.dart';
 import 'package:mobile_car_sim/common/utils.dart';
+import 'package:mobile_car_sim/pages/client/fullscreen_controls.dart';
 import 'package:mobile_car_sim/pages/client/receiver.dart';
 import 'package:mobile_car_sim/pages/client/controls.dart';
 import 'package:mobile_car_sim/pages/connections/wifi.dart';
@@ -142,6 +144,10 @@ class MainPage extends ConsumerWidget {
       children: [
         MapCanvas(
           key: mapKey,
+        ),
+        Positioned(
+          bottom: 0,
+          child: DrDriverControls(),
         ),
       ],
     );

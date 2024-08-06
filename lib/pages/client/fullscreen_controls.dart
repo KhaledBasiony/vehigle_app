@@ -65,21 +65,25 @@ class _DrDriverControlsState extends ConsumerState<DrDriverControls> {
   Widget build(BuildContext context) {
     const wheel = _SteeringWheel(side: _wheelSize);
 
-    const pedals = Row(
+    final pedals = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Padding(
-          padding: EdgeInsets.all(_padding),
+          padding: const EdgeInsets.all(_padding),
           child: _Pedal(
             asset: 'images/brakes_pedal.png',
             height: _wheelSize,
+            onPress: Actions.handler(context, const StopIntent()) ?? () {},
+            onRelease: () {},
           ),
         ),
         Padding(
-          padding: EdgeInsets.all(_padding),
+          padding: const EdgeInsets.all(_padding),
           child: _Pedal(
             asset: 'images/accelerator_pedal.png',
             height: _wheelSize,
+            onPress: Actions.handler(context, const MoveForwardIntent()) ?? () {},
+            onRelease: () {},
           ),
         ),
       ],
@@ -109,11 +113,16 @@ class _DrDriverControlsState extends ConsumerState<DrDriverControls> {
 class _Pedal extends StatefulWidget {
   const _Pedal({
     required this.asset,
+    required this.onPress,
+    required this.onRelease,
     this.height = 150,
   });
 
   final double height;
   final String asset;
+
+  final VoidCallback onPress;
+  final VoidCallback onRelease;
 
   @override
   State<_Pedal> createState() => _PedalState();
@@ -139,10 +148,12 @@ class _PedalState extends State<_Pedal> with SingleTickerProviderStateMixin {
 
   void _press([_]) {
     _controller.forward();
+    widget.onPress();
   }
 
   void _release([_]) {
     _controller.reverse();
+    widget.onRelease();
   }
 
   @override

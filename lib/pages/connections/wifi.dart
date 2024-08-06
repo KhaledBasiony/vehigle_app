@@ -24,20 +24,10 @@ class _WifiDataCardState extends ConsumerState<WifiDataCard> {
 
   late Future _waiter;
 
-  late final AppLifecycleListener _lifeCycleListener;
-
-  void _killConnection() {
-    print('killing connection');
-    _refresh();
-  }
-
   @override
   void initState() {
     super.initState();
     _updateStatus();
-    _lifeCycleListener = AppLifecycleListener(
-      onInactive: _killConnection,
-    );
     _waiter = _asyncInit();
   }
 
@@ -94,12 +84,6 @@ class _WifiDataCardState extends ConsumerState<WifiDataCard> {
     setState(() {
       _updateStatus();
     });
-  }
-
-  @override
-  void dispose() {
-    _lifeCycleListener.dispose();
-    super.dispose();
   }
 
   @override

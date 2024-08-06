@@ -6,6 +6,8 @@ import 'package:mobile_car_sim/common/provider.dart';
 import 'package:mobile_car_sim/common/shortcuts/actions.dart';
 import 'package:mobile_car_sim/common/theme.dart';
 import 'package:mobile_car_sim/common/utils.dart';
+import 'package:mobile_car_sim/models/client.dart';
+import 'package:mobile_car_sim/models/simulator.dart';
 import 'package:mobile_car_sim/pages/client/fullscreen_controls.dart';
 import 'package:mobile_car_sim/pages/client/receiver.dart';
 import 'package:mobile_car_sim/pages/client/controls.dart';
@@ -54,8 +56,18 @@ class MainPage extends ConsumerWidget {
   static const mapTag = 'Map';
   static const mapKey = ValueKey(mapTag);
 
+  void _killConnection(WidgetRef ref) async {
+    print('killing connection');
+    if (Client.isConnected) Client.instance.disconnect();
+    await MockServer.instance.down();
+    ref.read(isConnectedProvider.notifier).state = false;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    AppLifecycleListener(
+      onInactive: () => _killConnection(ref),
+    );
     const settingsDrawer = Drawer(
       width: 500,
       child: Padding(

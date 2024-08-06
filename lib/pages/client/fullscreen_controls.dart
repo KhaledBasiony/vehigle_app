@@ -26,6 +26,7 @@ class _DrDriverControlsState extends ConsumerState<DrDriverControls> {
   }
 
   void _updateAngle(DragUpdateDetails details) {
+    print(_overlaps);
     final currentOffset = details.localPosition - _wheelCenter;
     final steeringWheelAngle = -(_startOffset.direction - currentOffset.direction) * 180 / pi + _overlaps * 360;
 
@@ -58,6 +59,15 @@ class _DrDriverControlsState extends ConsumerState<DrDriverControls> {
       newSteeringWheelAngle > oldSteeringWheelAngle
           ? TurnLeftIntent(value: newCarWheelsAngle)
           : TurnRightIntent(value: newCarWheelsAngle),
+    );
+  }
+
+  void _resetAngle(_) {
+    ref.read(wheelAngleProvider.notifier).state = 0;
+    _overlaps = 0;
+    Actions.invoke(
+      context,
+      const TurnRightIntent(value: 0),
     );
   }
 
@@ -116,6 +126,7 @@ class _DrDriverControlsState extends ConsumerState<DrDriverControls> {
             GestureDetector(
               onPanStart: _startDragging,
               onPanUpdate: _updateAngle,
+              onPanEnd: _resetAngle,
               child: Padding(
                 padding: const EdgeInsets.all(_padding),
                 child: AnimatedRotation(

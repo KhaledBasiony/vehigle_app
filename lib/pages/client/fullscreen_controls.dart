@@ -65,7 +65,28 @@ class _DrDriverControlsState extends ConsumerState<DrDriverControls> {
   Widget build(BuildContext context) {
     const wheel = _SteeringWheel(side: _wheelSize);
 
+    const pedals = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: EdgeInsets.all(_padding),
+          child: _Pedal(
+            asset: 'images/brakes_pedal.png',
+            height: _wheelSize,
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.all(_padding),
+          child: _Pedal(
+            asset: 'images/accelerator_pedal.png',
+            height: _wheelSize,
+          ),
+        ),
+      ],
+    );
+
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         GestureDetector(
           onPanStart: _startDragging,
@@ -79,8 +100,69 @@ class _DrDriverControlsState extends ConsumerState<DrDriverControls> {
             ),
           ),
         ),
-        Text(ref.watch(_steeringWheelAngleProvider).toStringAsFixed(0)),
+        pedals,
       ],
+    );
+  }
+}
+
+class _Pedal extends StatefulWidget {
+  const _Pedal({
+    required this.asset,
+    this.height = 150,
+  });
+
+  final double height;
+  final String asset;
+
+  @override
+  State<_Pedal> createState() => _PedalState();
+}
+
+class _PedalState extends State<_Pedal> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: Durations.short3,
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _press([_]) {
+    _controller.forward();
+  }
+
+  void _release([_]) {
+    _controller.reverse();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: _press,
+      onTapUp: _release,
+      onTapCancel: _release,
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) => Transform(
+          transform: Matrix4.rotationX(30 * _controller.value * pi / 180),
+          child: child,
+        ),
+        child: Image.asset(
+          widget.asset,
+          height: widget.height,
+          color: AppTheme.instance.theme.colorScheme.primary,
+        ),
+      ),
     );
   }
 }

@@ -34,4 +34,11 @@ flutter:
   uses-material-design: true
 
   assets:
+    # "https://www.flaticon.com/free-icons/car-parts" 
+    # Car parts icons created by smashingstocks - Flaticon
     - images/steering_wheel.png
+
+    # https://www.flaticon.com/free-icons/brake" 
+    # Brake icons created by Freepik - Flaticon
+    - images/accelerator_pedal.png
+    - images/brakes_pedal.png

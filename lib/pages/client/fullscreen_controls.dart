@@ -61,6 +61,22 @@ class _DrDriverControlsState extends ConsumerState<DrDriverControls> {
     );
   }
 
+  void _pressAcceleration() {
+    final intent = switch (ref.read(_gearPositionProvider)) {
+      _GearPositions.drive => const MoveForwardIntent(),
+      _GearPositions.reverse => const MoveBackwardsIntent(),
+    };
+    Actions.maybeInvoke(context, intent);
+  }
+
+  void _releaseAcceleration() {}
+
+  void _pressBrakes() {
+    Actions.maybeInvoke(context, const StopIntent());
+  }
+
+  void _releaseBrakes() {}
+
   @override
   Widget build(BuildContext context) {
     const wheel = _SteeringWheel(side: _wheelSize);
@@ -73,8 +89,8 @@ class _DrDriverControlsState extends ConsumerState<DrDriverControls> {
           child: _Pedal(
             asset: 'images/brakes_pedal.png',
             height: _wheelSize,
-            onPress: Actions.handler(context, const StopIntent()) ?? () {},
-            onRelease: () {},
+            onPress: _pressBrakes,
+            onRelease: _releaseBrakes,
           ),
         ),
         Padding(
@@ -82,27 +98,34 @@ class _DrDriverControlsState extends ConsumerState<DrDriverControls> {
           child: _Pedal(
             asset: 'images/accelerator_pedal.png',
             height: _wheelSize,
-            onPress: Actions.handler(context, const MoveForwardIntent()) ?? () {},
-            onRelease: () {},
+            onPress: _pressAcceleration,
+            onRelease: _releaseAcceleration,
           ),
         ),
       ],
     );
 
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        GestureDetector(
-          onPanStart: _startDragging,
-          onPanUpdate: _updateAngle,
-          child: Padding(
-            padding: const EdgeInsets.all(_padding),
-            child: AnimatedRotation(
-              turns: _carWheelsToSteeringWheelTurns(ref.watch(wheelAngleProvider)),
-              duration: Durations.short3,
-              child: wheel,
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const _TransmissionGear(),
+            GestureDetector(
+              onPanStart: _startDragging,
+              onPanUpdate: _updateAngle,
+              child: Padding(
+                padding: const EdgeInsets.all(_padding),
+                child: AnimatedRotation(
+                  turns: _carWheelsToSteeringWheelTurns(ref.watch(wheelAngleProvider)),
+                  duration: Durations.short3,
+                  child: wheel,
+                ),
+              ),
             ),
-          ),
+          ],
         ),
         pedals,
       ],
@@ -178,6 +201,51 @@ class _PedalState extends State<_Pedal> with SingleTickerProviderStateMixin {
   }
 }
 
+class _TransmissionGear extends ConsumerWidget {
+  const _TransmissionGear();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    const baseWidth = 100.0;
+    const baseHeight = baseWidth * 431 / 354;
+    final gearBase = Image.asset(
+      'images/gear_base.png',
+      width: baseWidth,
+      color: AppTheme.instance.theme.colorScheme.primary,
+    );
+
+    final gearPosition = ref.watch(_gearPositionProvider);
+    final gearTransmission = AnimatedPositioned(
+      key: const ValueKey('Gear-Animator'),
+      duration: Durations.medium3,
+      top: switch (gearPosition) {
+        _GearPositions.reverse => baseHeight / 3.75,
+        _ => null,
+      },
+      bottom: switch (gearPosition) {
+        _GearPositions.drive => baseHeight / 3.6,
+        _ => null,
+      },
+      left: baseWidth / 3.8,
+      child: Image.asset(
+        'images/gear_transmission.png',
+        width: baseWidth / 2,
+        color: AppTheme.instance.theme.colorScheme.primary,
+      ),
+    );
+    return GestureDetector(
+      onVerticalDragUpdate: (details) => ref.read(_gearPositionProvider.notifier).state =
+          details.delta.dy.isNegative ? _GearPositions.reverse : _GearPositions.drive,
+      child: Stack(
+        children: [
+          gearBase,
+          gearTransmission,
+        ],
+      ),
+    );
+  }
+}
+
 class _SteeringWheel extends StatelessWidget {
   const _SteeringWheel({
     this.side = 150,
@@ -196,6 +264,7 @@ class _SteeringWheel extends StatelessWidget {
 }
 
 final _steeringWheelAngleProvider = StateProvider<double>((ref) => 0);
+final _gearPositionProvider = StateProvider<_GearPositions>((ref) => _GearPositions.drive);
 
 int _steeringWheelToCarWheels(double steeringWheelAngle) => (steeringWheelAngle / (360 * 5 / 3) * 40).round();
 double _carWheelsToSteeringWheelTurns(int carWheelsAnlge) => carWheelsAnlge / 40 * 5 / 3;
@@ -211,3 +280,5 @@ double boundedValue({
         : value > upperBound
             ? upperBound
             : value;
+
+enum _GearPositions { reverse, drive }

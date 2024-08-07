@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -57,10 +58,12 @@ class MainPage extends ConsumerWidget {
   static const mapKey = ValueKey(mapTag);
 
   void _killConnection(WidgetRef ref) async {
-    print('killing connection');
-    if (Client.isConnected) Client.instance.disconnect();
-    await MockServer.instance.down();
-    ref.read(isConnectedProvider.notifier).state = false;
+    if (!kDebugMode) {
+      print('killing connection');
+      if (Client.isConnected) Client.instance.disconnect();
+      await MockServer.instance.down();
+      ref.read(isConnectedProvider.notifier).state = false;
+    }
   }
 
   @override

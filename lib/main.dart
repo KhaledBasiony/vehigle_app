@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_car_sim/common/db.dart';
 import 'package:mobile_car_sim/common/provider.dart';
@@ -153,13 +154,30 @@ class MainPage extends ConsumerWidget {
       ],
     );
 
-    const fullScreenBody = Stack(
-      key: ValueKey('FullScreenBody'),
+    final isControlsView = ref.watch(isControlsViewProvider);
+    final controlsViewSwitcher = IconButton(
+      onPressed: () {
+        ref.read(isControlsViewProvider.notifier).state ^= true;
+      },
+      icon: isControlsView ? const Icon(Icons.map_rounded) : const Icon(Icons.grid_on_rounded),
+    );
+    final fullScreenBody = Stack(
+      key: const ValueKey('FullScreenBody'),
       children: [
-        MapCanvas(
-          key: mapKey,
+        AnimatedSwitcher(
+          duration: Durations.short4,
+          child: isControlsView
+              ? const MapCanvas(
+                  key: mapKey,
+                )
+              : const Center(child: ReadingsSetter()),
         ),
         Positioned(
+          top: 0,
+          left: 0,
+          child: controlsViewSwitcher,
+        ),
+        const Positioned(
           bottom: 0,
           left: 0,
           right: 0,

@@ -120,7 +120,7 @@ class _ControlsCardState extends ConsumerState<ControlsCard> {
                       IconButton(onPressed: _send, icon: const Icon(Icons.send_outlined))
                     ],
                   ),
-                  const _ReadingsSetter(),
+                  const ReadingsSetter(),
                 ],
               ),
             ),
@@ -382,14 +382,14 @@ enum _ParkingAlgo {
   twoCircles,
 }
 
-class _ReadingsSetter extends ConsumerStatefulWidget {
-  const _ReadingsSetter();
+class ReadingsSetter extends ConsumerStatefulWidget {
+  const ReadingsSetter();
 
   @override
-  ConsumerState<_ReadingsSetter> createState() => __ReadingsSetterState();
+  ConsumerState<ReadingsSetter> createState() => _ReadingsSetterState();
 }
 
-class __ReadingsSetterState extends ConsumerState<_ReadingsSetter> {
+class _ReadingsSetterState extends ConsumerState<ReadingsSetter> {
   late final TextEditingController _stateController;
 
   @override

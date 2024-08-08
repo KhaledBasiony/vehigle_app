@@ -6,6 +6,35 @@ import 'package:mobile_car_sim/common/provider.dart';
 import 'package:mobile_car_sim/common/shortcuts/actions.dart';
 import 'package:mobile_car_sim/common/theme.dart';
 
+const _padding = 20.0;
+
+class _ControlsConstraints extends ConsumerWidget {
+  const _ControlsConstraints({
+    required this.child,
+    required this.maxWidth,
+    this.onLayout,
+  });
+
+  final Widget child;
+  final double maxWidth;
+
+  final void Function(double width)? onLayout;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = min(maxWidth, constraints.maxWidth);
+        Future(() => (onLayout ?? (_) {})(width));
+        return SizedBox(
+          width: width,
+          child: child,
+        );
+      },
+    );
+  }
+}
+
 class DrDriverControls extends ConsumerStatefulWidget {
   const DrDriverControls({super.key});
 
@@ -14,20 +43,18 @@ class DrDriverControls extends ConsumerStatefulWidget {
 }
 
 class _DrDriverControlsState extends ConsumerState<DrDriverControls> {
-  static const _padding = 20.0;
-  static const _wheelSize = 150.0;
-  static const _wheelCenter = Offset(_wheelSize / 2 + _padding, _wheelSize / 2 + _padding);
-
   Offset _startOffset = Offset.zero;
   int _overlaps = 0;
 
+  Duration _steeringDuration = Durations.short3;
+
   void _startDragging(DragStartDetails details) {
-    _startOffset = details.localPosition - _wheelCenter;
+    _startOffset = details.localPosition - ref.read(_wheelGeoProvider).center;
+    _steeringDuration = Durations.short3;
   }
 
   void _updateAngle(DragUpdateDetails details) {
-    print(_overlaps);
-    final currentOffset = details.localPosition - _wheelCenter;
+    final currentOffset = details.localPosition - ref.read(_wheelGeoProvider).center;
     final steeringWheelAngle = -(_startOffset.direction - currentOffset.direction) * 180 / pi + _overlaps * 360;
 
     final oldSteeringWheelAngle = ref.read(_steeringWheelAngleProvider);
@@ -63,7 +90,9 @@ class _DrDriverControlsState extends ConsumerState<DrDriverControls> {
   }
 
   void _resetAngle(_) {
+    _steeringDuration = Durations.medium4;
     ref.read(wheelAngleProvider.notifier).state = 0;
+    ref.read(_steeringWheelAngleProvider.notifier).state = 0;
     _overlaps = 0;
     Actions.invoke(
       context,
@@ -89,27 +118,43 @@ class _DrDriverControlsState extends ConsumerState<DrDriverControls> {
 
   @override
   Widget build(BuildContext context) {
-    const wheel = _SteeringWheel(side: _wheelSize);
+    final wheel = _ControlsConstraints(
+      maxWidth: 150,
+      onLayout: (width) {
+        ref.read(_wheelGeoProvider.notifier).state = _WheelGeo(size: Size.square(width));
+      },
+      child: Image.asset(
+        'images/steering_wheel.png',
+        color: AppTheme.instance.theme.colorScheme.primary,
+      ),
+    );
+
+    final brakesPedal = _BrakesPedal(
+      onPress: _pressBrakes,
+      onRelease: _releaseBrakes,
+    );
+
+    final accelerationPedal = _AccelerationPedal(
+      onPress: _pressAcceleration,
+      onRelease: _releaseAcceleration,
+    );
 
     final pedals = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Padding(
-          padding: const EdgeInsets.all(_padding),
-          child: _Pedal(
-            asset: 'images/brakes_pedal.png',
-            height: _wheelSize,
-            onPress: _pressBrakes,
-            onRelease: _releaseBrakes,
+        Flexible(
+          child: Padding(
+            padding: const EdgeInsets.all(_padding),
+            child: brakesPedal,
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.all(_padding),
-          child: _Pedal(
-            asset: 'images/accelerator_pedal.png',
-            height: _wheelSize,
-            onPress: _pressAcceleration,
-            onRelease: _releaseAcceleration,
+        Flexible(
+          child: Padding(
+            padding: const EdgeInsets.all(_padding),
+            child: _ControlsConstraints(
+              maxWidth: 80,
+              child: accelerationPedal,
+            ),
           ),
         ),
       ],
@@ -119,27 +164,77 @@ class _DrDriverControlsState extends ConsumerState<DrDriverControls> {
       crossAxisAlignment: CrossAxisAlignment.end,
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const _TransmissionGear(),
-            GestureDetector(
-              onPanStart: _startDragging,
-              onPanUpdate: _updateAngle,
-              onPanEnd: _resetAngle,
-              child: Padding(
-                padding: const EdgeInsets.all(_padding),
-                child: AnimatedRotation(
-                  turns: _carWheelsToSteeringWheelTurns(ref.watch(wheelAngleProvider)),
-                  duration: Durations.short3,
-                  child: wheel,
+        Flexible(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.all(_padding),
+                child: _TransmissionGear(),
+              ),
+              GestureDetector(
+                onPanStart: _startDragging,
+                onPanUpdate: _updateAngle,
+                onPanEnd: _resetAngle,
+                child: Padding(
+                  padding: const EdgeInsets.all(_padding),
+                  child: AnimatedRotation(
+                    turns: _carWheelsToSteeringWheelTurns(ref.watch(wheelAngleProvider)),
+                    duration: _steeringDuration,
+                    child: wheel,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-        pedals,
+        Flexible(child: pedals),
       ],
+    );
+  }
+}
+
+class _BrakesPedal extends ConsumerWidget {
+  const _BrakesPedal({
+    required this.onPress,
+    required this.onRelease,
+  });
+
+  final VoidCallback onPress;
+  final VoidCallback onRelease;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: ref.watch(_wheelGeoProvider).size.height),
+      child: _Pedal(
+        asset: 'images/brakes_pedal.png',
+        onPress: onPress,
+        onRelease: onRelease,
+      ),
+    );
+  }
+}
+
+class _AccelerationPedal extends ConsumerWidget {
+  const _AccelerationPedal({
+    required this.onPress,
+    required this.onRelease,
+  });
+
+  final VoidCallback onPress;
+  final VoidCallback onRelease;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: ref.watch(_wheelGeoProvider).size.height),
+      child: _Pedal(
+        asset: 'images/accelerator_pedal.png',
+        onPress: onPress,
+        onRelease: onRelease,
+      ),
     );
   }
 }
@@ -149,10 +244,8 @@ class _Pedal extends StatefulWidget {
     required this.asset,
     required this.onPress,
     required this.onRelease,
-    this.height = 150,
   });
 
-  final double height;
   final String asset;
 
   final VoidCallback onPress;
@@ -204,7 +297,6 @@ class _PedalState extends State<_Pedal> with SingleTickerProviderStateMixin {
         ),
         child: Image.asset(
           widget.asset,
-          height: widget.height,
           color: AppTheme.instance.theme.colorScheme.primary,
         ),
       ),
@@ -217,8 +309,8 @@ class _TransmissionGear extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    const baseWidth = 100.0;
-    const baseHeight = baseWidth * 431 / 354;
+    final baseWidth = ref.watch(_wheelGeoProvider).size.width * 2 / 3;
+    final baseHeight = baseWidth * 431 / 354;
     final gearBase = Image.asset(
       'images/gear_base.png',
       width: baseWidth,
@@ -257,29 +349,25 @@ class _TransmissionGear extends ConsumerWidget {
   }
 }
 
-class _SteeringWheel extends StatelessWidget {
-  const _SteeringWheel({
-    this.side = 150,
-  });
-
-  final double side;
-
-  @override
-  Widget build(BuildContext context) {
-    return Image.asset(
-      'images/steering_wheel.png',
-      height: side,
-      color: AppTheme.instance.theme.colorScheme.primary,
-    );
-  }
-}
-
 final _steeringWheelAngleProvider = StateProvider<double>((ref) => 0);
 final _gearPositionProvider = StateProvider<_GearPositions>((ref) => _GearPositions.drive);
 
+final _wheelGeoProvider = StateProvider<_WheelGeo>((ref) => _WheelGeo(size: const Size.square(150)));
+
+class _WheelGeo {
+  _WheelGeo({required this.size})
+      : center = Offset(
+              size.width / 2,
+              size.height / 2,
+            ) +
+            const Offset(_padding, _padding);
+
+  final Size size;
+  final Offset center;
+}
+
 int _steeringWheelToCarWheels(double steeringWheelAngle) => (steeringWheelAngle / (360 * 5 / 3) * 40).round();
 double _carWheelsToSteeringWheelTurns(int carWheelsAnlge) => carWheelsAnlge / 40 * 5 / 3;
-int _turnsToCarWheels(double turns) => (turns * 40 * 3 / 5).round();
 
 double boundedValue({
   required double value,

@@ -119,7 +119,7 @@ class _DrDriverControlsState extends ConsumerState<DrDriverControls> {
   @override
   Widget build(BuildContext context) {
     final wheel = _ControlsConstraints(
-      maxWidth: 150,
+      maxWidth: 110,
       onLayout: (width) {
         ref.read(_wheelGeoProvider.notifier).state = _WheelGeo(size: Size.square(width));
       },

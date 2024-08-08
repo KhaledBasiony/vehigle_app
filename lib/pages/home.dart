@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_car_sim/common/globals.dart';
 import 'package:mobile_car_sim/common/provider.dart';
@@ -41,6 +42,7 @@ class _HomePageState extends ConsumerState<HomePage> with SingleTickerProviderSt
       if (Client.isConnected) Client.instance.disconnect();
       await MockServer.instance.down();
       ref.read(isConnectedProvider.notifier).state = false;
+      ref.read(isFullScreenProvider.notifier).state = false;
     }
   }
 
@@ -63,6 +65,11 @@ class _HomePageState extends ConsumerState<HomePage> with SingleTickerProviderSt
       ),
     );
 
+    final logoutButton = IconButton(
+      onPressed: _logout,
+      icon: const Icon(Icons.logout_rounded),
+    );
+
     final appBar = AppBar(
       title: const Text('Vehigle Sim'),
       centerTitle: true,
@@ -74,12 +81,7 @@ class _HomePageState extends ConsumerState<HomePage> with SingleTickerProviderSt
           ),
         );
       }),
-      actions: [
-        IconButton(
-          onPressed: _logout,
-          icon: const Icon(Icons.logout_rounded),
-        ),
-      ],
+      actions: [logoutButton],
     );
 
     final actions = <Type, Action<Intent>>{
@@ -107,7 +109,16 @@ class _HomePageState extends ConsumerState<HomePage> with SingleTickerProviderSt
     const tabView = TabBarView(
       children: [
         _ClientWidget(),
-        MapCanvas(key: mapKey),
+        Stack(
+          children: [
+            MapCanvas(key: mapKey),
+            Positioned(
+              top: 0,
+              right: 0,
+              child: FullScreenSwitcher(),
+            ),
+          ],
+        ),
       ],
     );
 
@@ -187,6 +198,11 @@ class _HomePageState extends ConsumerState<HomePage> with SingleTickerProviderSt
           right: 0,
           child: DrDriverControls(),
         ),
+        Positioned(
+          top: 0,
+          right: 0,
+          child: widget.isUser ? logoutButton : const FullScreenSwitcher(),
+        ),
       ],
     );
 
@@ -212,6 +228,34 @@ class _HomePageState extends ConsumerState<HomePage> with SingleTickerProviderSt
                       : developerBody,
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class FullScreenSwitcher extends ConsumerWidget {
+  const FullScreenSwitcher({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: IconButton.filledTonal(
+        iconSize: 30,
+        tooltip: 'Toggle Fullscreen',
+        onPressed: () => ref.read(isFullScreenProvider.notifier).state ^= true,
+        icon: AnimatedSwitcher(
+          duration: Durations.medium2,
+          child: ref.watch(isFullScreenProvider)
+              ? const Icon(
+                  key: ValueKey('FullScreen-Off'),
+                  Icons.fullscreen_exit_rounded,
+                )
+              : const Icon(
+                  key: ValueKey('FullScreen-On'),
+                  Icons.fullscreen_rounded,
+                ),
         ),
       ),
     );

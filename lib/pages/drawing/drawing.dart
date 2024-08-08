@@ -30,36 +30,28 @@ class MapCanvas extends ConsumerWidget {
         MapModel.instance.scale = netCanvasSide / (CarModel.maxReading * 2 + CarModel.instance.height);
 
         final borderRadius = BorderRadius.circular(20);
-        return Stack(
-          children: [
-            Center(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight: canvasSide,
-                  maxWidth: canvasSide,
+        return Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: canvasSide,
+              maxWidth: canvasSide,
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.primary,
+                  width: borderWidth,
                 ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Theme.of(context).colorScheme.primary,
-                      width: borderWidth,
-                    ),
-                    borderRadius: borderRadius,
-                  ),
-                  margin: edgeInsets,
-                  padding: edgeInsets,
-                  child: ClipRRect(
-                    borderRadius: borderRadius,
-                    child: const MapDrawer(),
-                  ),
-                ),
+                borderRadius: borderRadius,
+              ),
+              margin: edgeInsets,
+              padding: edgeInsets,
+              child: ClipRRect(
+                borderRadius: borderRadius,
+                child: const MapDrawer(),
               ),
             ),
-            const Align(
-              alignment: AlignmentDirectional.topEnd,
-              child: _FullScreenSwitcher(),
-            ),
-          ],
+          ),
         );
       },
     );
@@ -458,33 +450,5 @@ class MapPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
     return myShouldRepaint;
-  }
-}
-
-class _FullScreenSwitcher extends ConsumerWidget {
-  const _FullScreenSwitcher();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: IconButton.filledTonal(
-        iconSize: 30,
-        tooltip: 'Toggle Fullscreen',
-        onPressed: () => ref.read(isFullScreenProvider.notifier).state ^= true,
-        icon: AnimatedSwitcher(
-          duration: Durations.medium2,
-          child: ref.watch(isFullScreenProvider)
-              ? const Icon(
-                  key: ValueKey('FullScreen-Off'),
-                  Icons.fullscreen_exit_rounded,
-                )
-              : const Icon(
-                  key: ValueKey('FullScreen-On'),
-                  Icons.fullscreen_rounded,
-                ),
-        ),
-      ),
-    );
   }
 }

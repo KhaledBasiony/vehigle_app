@@ -2,9 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile_car_sim/common/globals.dart';
 import 'package:mobile_car_sim/common/provider.dart';
 import 'package:mobile_car_sim/common/shortcuts/actions.dart';
-import 'package:mobile_car_sim/common/utils.dart';
 import 'package:mobile_car_sim/models/client.dart';
 import 'package:mobile_car_sim/models/simulator.dart';
 import 'package:mobile_car_sim/pages/client/fullscreen_controls.dart';
@@ -111,49 +111,48 @@ class _HomePageState extends ConsumerState<HomePage> with SingleTickerProviderSt
       ],
     );
 
-    final userBody = Placeholder();
+    final userBody = Center(
+      child: WifiConnectButton(
+        onDone: () => ref.read(isFullScreenProvider.notifier).state = true,
+      ),
+    );
 
     final developerBody = DefaultTabController(
       initialIndex: _tabInitIndex,
       length: 2,
       child: FocusScope(
         autofocus: true,
-        child: AnimatedSwitcher(
-          duration: Durations.long4,
-          switchInCurve: Curves.easeInOutCubic,
-          switchOutCurve: Curves.easeInOutCubic,
-          child: Column(
-            key: const ValueKey('NormalBody'),
-            children: [
-              tabSwitcher,
-              Expanded(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final isVertical = constraints.maxWidth < 1000;
-                    final controlConstraints = isVertical
-                        ? BoxConstraints(maxHeight: constraints.maxHeight / 2)
-                        : BoxConstraints(maxWidth: constraints.maxWidth / 2);
+        child: Column(
+          key: const ValueKey('NormalBody'),
+          children: [
+            tabSwitcher,
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final isVertical = constraints.maxWidth < 1000;
+                  final controlConstraints = isVertical
+                      ? BoxConstraints(maxHeight: constraints.maxHeight / 2)
+                      : BoxConstraints(maxWidth: constraints.maxWidth / 2);
 
-                    final controlsArea = ConstrainedBox(
-                      constraints: controlConstraints,
-                      child: const Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: ControlsCard(),
-                      ),
-                    );
+                  final controlsArea = ConstrainedBox(
+                    constraints: controlConstraints,
+                    child: const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: ControlsCard(),
+                    ),
+                  );
 
-                    return Flex(
-                      direction: isVertical ? Axis.vertical : Axis.horizontal,
-                      children: [
-                        const Expanded(child: tabView),
-                        controlsArea,
-                      ],
-                    );
-                  },
-                ),
+                  return Flex(
+                    direction: isVertical ? Axis.vertical : Axis.horizontal,
+                    children: [
+                      const Expanded(child: tabView),
+                      controlsArea,
+                    ],
+                  );
+                },
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -170,11 +169,7 @@ class _HomePageState extends ConsumerState<HomePage> with SingleTickerProviderSt
       children: [
         AnimatedSwitcher(
           duration: Durations.short4,
-          child: isControlsView
-              ? const MapCanvas(
-                  key: mapKey,
-                )
-              : const Center(child: ReadingsSetter()),
+          child: isControlsView ? const Center(child: ReadingsSetter()) : const MapCanvas(key: mapKey),
         ),
         Positioned(
           top: 0,
@@ -195,7 +190,7 @@ class _HomePageState extends ConsumerState<HomePage> with SingleTickerProviderSt
     return Actions(
       actions: actions,
       child: PageStorage(
-        bucket: pageBucket,
+        bucket: cPageBucket,
         child: Shortcuts(
           shortcuts: shortcutActivators,
           child: SafeArea(

@@ -1,14 +1,10 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mobile_car_sim/common/db.dart';
 import 'package:mobile_car_sim/common/provider.dart';
 import 'package:mobile_car_sim/common/shortcuts/actions.dart';
+import 'package:mobile_car_sim/common/utils.dart';
 import 'package:mobile_car_sim/models/client.dart';
 import 'package:mobile_car_sim/models/simulator.dart';
-import 'package:network_info_plus/network_info_plus.dart';
-import 'package:wifi_info_plugin_plus/wifi_info_plugin_plus.dart';
 
 class WifiDataCard extends ConsumerStatefulWidget {
   const WifiDataCard({super.key});
@@ -18,10 +14,8 @@ class WifiDataCard extends ConsumerStatefulWidget {
 }
 
 class _WifiDataCardState extends ConsumerState<WifiDataCard> {
-  String? _ip;
-  String? _gateway;
+  TCPConnectionInfo? _tcpInfo;
   String? _status;
-  static const port = 4000;
 
   late Future _waiter;
 
@@ -35,22 +29,15 @@ class _WifiDataCardState extends ConsumerState<WifiDataCard> {
   void _updateStatus() => _status = Client.isConnected ? 'Connected' : 'Disconnected';
 
   Future<void> _asyncInit() async {
-    final useSim = Db.instance.read<bool>(useSimulator);
-    if (useSim ?? false) {
-      await MockServer.instance.up();
-      _gateway = MockServer.instance.ip;
-      return;
-    }
-    if (Platform.isAndroid) {
-      final network = await WifiInfoPlugin.wifiDetails;
-
-      _ip = network?.ipAddress;
-      _gateway = network?.routerIp;
-    } else {
-      final network = NetworkInfo();
-
-      _ip = await network.getWifiIP();
-      _gateway = await network.getWifiGatewayIP();
+    _tcpInfo = await TCPConnectionInfo.detectInfo();
+    if (_tcpInfo == null && mounted) {
+      showDialog(
+        context: context,
+        builder: (context) => const AlertDialog(
+          title: Text('Warning!'),
+          content: Text('Could not auto detect TCP Socket details over Wifi'),
+        ),
+      );
     }
   }
 
@@ -61,30 +48,6 @@ class _WifiDataCardState extends ConsumerState<WifiDataCard> {
     setState(() {
       _updateStatus();
       _waiter = _asyncInit();
-    });
-  }
-
-  void _connect() async {
-    try {
-      await Client.connect(_gateway!, port);
-      ref.read(isConnectedProvider.notifier).state = true;
-      ref.read(isReceivingProvider.notifier).state = true;
-      ref.read(wheelAngleProvider.notifier).state = 0;
-      if (mounted) Actions.invoke(context, const SwitchReceivingIntent(true));
-    } catch (e) {
-      if (mounted) {
-        await showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Oops!'),
-            content: Text(e.toString()),
-          ),
-        );
-      }
-    }
-
-    setState(() {
-      _updateStatus();
     });
   }
 
@@ -104,8 +67,8 @@ class _WifiDataCardState extends ConsumerState<WifiDataCard> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        Text('Current Ip: $_ip\n'
-                            'Gateway Ip: $_gateway'),
+                        Text('Current Ip: ${_tcpInfo?.sourceIp}\n'
+                            'Gateway Ip: ${_tcpInfo?.destinationIp}'),
                         Text('Connection:\n$_status'),
                       ],
                     ),
@@ -120,9 +83,11 @@ class _WifiDataCardState extends ConsumerState<WifiDataCard> {
                           style: TextStyle(color: Theme.of(context).colorScheme.tertiary),
                         ),
                       ),
-                      ElevatedButton(
-                        onPressed: Client.isConnected ? null : _connect,
-                        child: const Text('Connect'),
+                      WifiConnectButton(
+                        tcpInfo: _tcpInfo,
+                        onDone: () => setState(() {
+                          _updateStatus();
+                        }),
                       ),
                     ],
                   ),
@@ -134,6 +99,48 @@ class _WifiDataCardState extends ConsumerState<WifiDataCard> {
           return const CircularProgressIndicator();
         }
       },
+    );
+  }
+}
+
+class WifiConnectButton extends ConsumerWidget {
+  const WifiConnectButton({
+    super.key,
+    this.onDone,
+    this.tcpInfo,
+  });
+
+  final TCPConnectionInfo? tcpInfo;
+  final VoidCallback? onDone;
+
+  void _connect(BuildContext context, WidgetRef ref) async {
+    final info = tcpInfo ?? await TCPConnectionInfo.detectInfo();
+    try {
+      await Client.connect(info!.destinationIp, info.destinationPort);
+      ref.read(isConnectedProvider.notifier).state = true;
+      ref.read(isReceivingProvider.notifier).state = true;
+      ref.read(wheelAngleProvider.notifier).state = 0;
+      if (context.mounted) Actions.invoke(context, const SwitchReceivingIntent(true));
+    } catch (e) {
+      if (context.mounted) {
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Oops!'),
+            content: Text(e.toString()),
+          ),
+        );
+      }
+    }
+
+    if (onDone != null) onDone!();
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ElevatedButton(
+      onPressed: Client.isConnected ? null : () => _connect(context, ref),
+      child: const Text('Connect'),
     );
   }
 }

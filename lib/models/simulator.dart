@@ -7,6 +7,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:mobile_car_sim/common/db.dart';
+import 'package:mobile_car_sim/common/globals.dart';
 import 'package:mobile_car_sim/common/utils.dart';
 import 'package:mobile_car_sim/models/car.dart';
 import 'package:mobile_car_sim/pages/settings/mapper_model.dart';
@@ -14,7 +15,7 @@ import 'package:mobile_car_sim/pages/settings/mapper_model.dart';
 class MockServer {
   MockServer._({
     this.ip = '127.0.0.1',
-    this.port = 4000,
+    this.port = cServerPort,
   });
 
   static MockServer? _instance;

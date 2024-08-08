@@ -2,9 +2,9 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile_car_sim/common/globals.dart';
 import 'package:mobile_car_sim/common/provider.dart';
 import 'package:mobile_car_sim/common/theme.dart';
-import 'package:mobile_car_sim/common/utils.dart';
 import 'package:mobile_car_sim/common/widgets.dart';
 
 class MessageLogger extends ConsumerStatefulWidget {
@@ -95,12 +95,12 @@ class _ValueWatcherState extends ConsumerState<ValueWatcher> {
   @override
   void initState() {
     super.initState();
-    _keyControllers = pageBucket.readState(context, identifier: _keysFieldsIdentifier) ?? [];
+    _keyControllers = cPageBucket.readState(context, identifier: _keysFieldsIdentifier) ?? [];
   }
 
   @override
   void dispose() {
-    pageBucket.writeState(context, _keyControllers, identifier: _keysFieldsIdentifier);
+    cPageBucket.writeState(context, _keyControllers, identifier: _keysFieldsIdentifier);
     super.dispose();
   }
 

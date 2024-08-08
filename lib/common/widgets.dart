@@ -126,3 +126,47 @@ class RoundedTextField extends StatelessWidget {
 }
 
 enum InputType { integers, decimals, strings }
+
+class SemiCircularButton extends StatelessWidget {
+  const SemiCircularButton({
+    super.key,
+    required this.onPressed,
+    required this.child,
+    this.reverseDirection = false,
+    this.roundAll = false,
+  });
+
+  final void Function()? onPressed;
+  final Widget child;
+  final bool reverseDirection;
+  final bool roundAll;
+
+  @override
+  Widget build(BuildContext context) {
+    const firstRadius = 60.0;
+    const secondRadius = 6.0;
+    return Card(
+      elevation: 7,
+      shape: RoundedRectangleBorder(
+        borderRadius: roundAll
+            ? BorderRadius.circular(firstRadius)
+            : BorderRadius.only(
+                topLeft: Radius.circular(reverseDirection ? secondRadius : firstRadius),
+                topRight: Radius.circular(reverseDirection ? firstRadius : secondRadius),
+                bottomLeft: Radius.circular(reverseDirection ? firstRadius : secondRadius),
+                bottomRight: Radius.circular(reverseDirection ? secondRadius : firstRadius),
+              ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onPressed,
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: child,
+          ),
+        ),
+      ),
+    );
+  }
+}

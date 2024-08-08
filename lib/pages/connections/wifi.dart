@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_car_sim/common/provider.dart';
 import 'package:mobile_car_sim/common/shortcuts/actions.dart';
+import 'package:mobile_car_sim/common/theme.dart';
 import 'package:mobile_car_sim/common/utils.dart';
+import 'package:mobile_car_sim/common/widgets.dart';
 import 'package:mobile_car_sim/models/client.dart';
 import 'package:mobile_car_sim/models/simulator.dart';
 
@@ -108,10 +110,12 @@ class WifiConnectButton extends ConsumerWidget {
     super.key,
     this.onDone,
     this.tcpInfo,
+    this.semiCircularButton = false,
   });
 
   final TCPConnectionInfo? tcpInfo;
   final VoidCallback? onDone;
+  final bool semiCircularButton;
 
   void _connect(BuildContext context, WidgetRef ref) async {
     final info = tcpInfo ?? await TCPConnectionInfo.detectInfo();
@@ -138,6 +142,22 @@ class WifiConnectButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (semiCircularButton) {
+      return SemiCircularButton(
+        roundAll: true,
+        onPressed: Client.isConnected ? null : () => _connect(context, ref),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text(
+            'Connect',
+            style: TextStyle(
+              fontSize: 32,
+              color: Client.isConnected ? AppTheme.instance.theme.disabledColor : AppTheme.instance.primaryColor,
+            ),
+          ),
+        ),
+      );
+    }
     return ElevatedButton(
       onPressed: Client.isConnected ? null : () => _connect(context, ref),
       child: const Text('Connect'),

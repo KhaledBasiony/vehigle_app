@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_car_sim/common/theme.dart';
+import 'package:mobile_car_sim/common/widgets.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -13,24 +15,40 @@ class LoginPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userLoginButton = ElevatedButton(
+    final textStyle = TextStyle(fontSize: 32, color: AppTheme.instance.primaryColor);
+    final userLoginButton = SemiCircularButton(
       onPressed: () => _userLogin(context),
-      child: const Text('User Login'),
+      reverseDirection: true,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Text(
+          'User Login',
+          style: textStyle,
+        ),
+      ),
     );
-    final developerLoginButton = ElevatedButton(
+    final developerLoginButton = SemiCircularButton(
       onPressed: () => _developerLogin(context),
-      child: const Text('Developer Login'),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Text(
+          'Developer Login',
+          style: textStyle,
+        ),
+      ),
     );
 
     return Scaffold(
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            userLoginButton,
-            const SizedBox(height: 10),
-            developerLoginButton,
-          ],
+        child: IntrinsicWidth(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              userLoginButton,
+              const SizedBox(height: 10),
+              developerLoginButton,
+            ],
+          ),
         ),
       ),
     );

@@ -112,8 +112,13 @@ class _HomePageState extends ConsumerState<HomePage> with SingleTickerProviderSt
     );
 
     final userBody = Center(
-      child: WifiConnectButton(
-        onDone: () => ref.read(isFullScreenProvider.notifier).state = true,
+      child: IntrinsicHeight(
+        child: IntrinsicWidth(
+          child: WifiConnectButton(
+            semiCircularButton: true,
+            onDone: () => ref.read(isFullScreenProvider.notifier).state = true,
+          ),
+        ),
       ),
     );
 

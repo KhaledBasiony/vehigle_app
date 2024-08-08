@@ -165,7 +165,7 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
       final encoderDiff = encoderReading - (prevEncoderReading ?? 0);
       final angleDiff = (compassReading - (prevCompassReading ?? 0)) * pi / 180;
 
-      if (ref.read(carStatesProvider) == CarStates.searching) {
+      if (ref.read(navigationStateProvider) == CarNavigationState.searching) {
         CarModel.instance.readingsHistory.addFirst(
           SensorOffsets.fromReadings(
             frontLeft: (readings['LF'] as num? ?? 0).toDouble() * CarModel.maxReading,
@@ -229,7 +229,7 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
 
     return AnimatedSwitcher(
       duration: Durations.long4,
-      child: ref.read(carStatesProvider) == CarStates.searching ? searchingPaint : parkingPaint,
+      child: ref.read(navigationStateProvider) == CarNavigationState.searching ? searchingPaint : parkingPaint,
     );
   }
 }

@@ -92,8 +92,8 @@ class _HomePageState extends ConsumerState<HomePage> with SingleTickerProviderSt
       StopIntent: StopAction(ref: ref),
       NavigateIntent: NavigateAction(),
       ParkIntent: ParkAction(),
-      DriveBackIntent: DriveBackAction(),
-      StartRecordingIntent: RecordAction(),
+      DriveBackIntent: DriveBackAction(ref: ref),
+      StartRecordingIntent: RecordAction(ref: ref),
       ReplayParkIntent: ReplayAction(),
       SwitchReceivingIntent: SwitchReceivingAction(ref: ref),
     };

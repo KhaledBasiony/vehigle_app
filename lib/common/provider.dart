@@ -29,40 +29,31 @@ class MessageNotifier extends Notifier<List<Message>> {
   }
 }
 
-class RunningStateNotifier extends StateNotifier<bool> {
-  RunningStateNotifier() : super(false);
-
-  void setRunningState(bool newState) {
-    state = newState;
-  }
-}
-
-class CarStateNotifier extends Notifier<CarStates> {
-  @override
-  CarStates build() {
-    return CarStates.searching;
-  }
-
-  void update(CarStates newValue) => state = newValue;
-}
-
-enum CarStates {
+enum CarNavigationState {
   searching('Searching..'),
   waitingAlgoSelection('Waiting Algo Selection!'),
   parking('Parking');
 
-  const CarStates(this.disp);
+  const CarNavigationState(this.disp);
 
   final String disp;
 }
 
-final carStatesProvider = NotifierProvider<CarStateNotifier, CarStates>(CarStateNotifier.new);
+enum CarRecordingState {
+  notRecording,
+  recording,
+}
+
+enum CarDriveBackState {
+  driving,
+  waiting,
+}
 
 final messagesProvider = NotifierProvider<MessageNotifier, List<Message>>(MessageNotifier.new);
 
-final isRunningProvider = StateNotifierProvider<RunningStateNotifier, bool>((ref) {
-  return RunningStateNotifier();
-});
+final navigationStateProvider = StateProvider<CarNavigationState>((ref) => CarNavigationState.searching);
+final recordingStateProvider = StateProvider<CarRecordingState>((ref) => CarRecordingState.notRecording);
+final driveBackProvider = StateProvider<CarDriveBackState>((ref) => CarDriveBackState.waiting);
 
 final isConnectedProvider = StateProvider((ref) => false);
 final isReceivingProvider = StateProvider((ref) => true);

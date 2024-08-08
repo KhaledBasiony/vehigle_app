@@ -114,23 +114,35 @@ class ParkAction extends Action<ParkIntent> {
 }
 
 class DriveBackAction extends Action<DriveBackIntent> {
-  DriveBackAction();
+  DriveBackAction({required this.ref});
+
+  final WidgetRef ref;
 
   @override
   Object? invoke(DriveBackIntent intent) {
     final command = Db.instance.read<List<int>>(cDriveBackButton);
     if (command != null) Client.instance.send(command);
+    ref.read(driveBackProvider.notifier).state = switch (ref.read(driveBackProvider)) {
+      CarDriveBackState.driving => CarDriveBackState.waiting,
+      CarDriveBackState.waiting => CarDriveBackState.driving,
+    };
     return null;
   }
 }
 
 class RecordAction extends Action<StartRecordingIntent> {
-  RecordAction();
+  RecordAction({required this.ref});
+
+  final WidgetRef ref;
 
   @override
   Object? invoke(StartRecordingIntent intent) {
     final command = Db.instance.read<List<int>>(cRecordButton);
     if (command != null) Client.instance.send(command);
+    ref.read(recordingStateProvider.notifier).state = switch (ref.read(recordingStateProvider)) {
+      CarRecordingState.notRecording => CarRecordingState.recording,
+      CarRecordingState.recording => CarRecordingState.notRecording,
+    };
     return null;
   }
 }
@@ -160,7 +172,7 @@ class SwitchReceivingAction extends Action<SwitchReceivingIntent> {
 
     final data = jsonDecode(jsonEncodedText) as Map<String, dynamic>;
     if (data.containsKey('PHS')) {
-      ref.read(carStatesProvider.notifier).update(CarStates.values.elementAt(data['PHS'] as int));
+      ref.read(navigationStateProvider.notifier).state = CarNavigationState.values.elementAt(data['PHS'] as int);
     }
   }
 

@@ -140,7 +140,7 @@ class _CarState extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentState = ref.watch(carStatesProvider);
+    final currentState = ref.watch(navigationStateProvider);
     final currentStateIndicator = Text(currentState.disp);
 
     final selectAlgoButton = DropdownButtonFormField(
@@ -160,7 +160,7 @@ class _CarState extends ConsumerWidget {
           _ParkingAlgo.twoCircles => 'l',
         });
 
-        ref.read(carStatesProvider.notifier).update(CarStates.parking);
+        ref.read(navigationStateProvider.notifier).state = CarNavigationState.parking;
       },
     );
 
@@ -189,7 +189,7 @@ class _CarState extends ConsumerWidget {
         const Text('Current State:'),
         currentStateIndicator,
         Visibility(
-          visible: currentState != CarStates.searching,
+          visible: currentState != CarNavigationState.searching,
           child: selectAlgoButton,
         ),
       ],
@@ -383,7 +383,7 @@ enum _ParkingAlgo {
 }
 
 class ReadingsSetter extends ConsumerStatefulWidget {
-  const ReadingsSetter();
+  const ReadingsSetter({super.key});
 
   @override
   ConsumerState<ReadingsSetter> createState() => _ReadingsSetterState();
@@ -428,7 +428,10 @@ class _ReadingsSetterState extends ConsumerState<ReadingsSetter> {
 
     final driveBack = ElevatedButton(
       onPressed: Actions.handler(context, const DriveBackIntent()) ?? () {},
-      child: const Text('Drive Back'),
+      child: switch (ref.watch(driveBackProvider)) {
+        CarDriveBackState.driving => const Text('Stop Driving Back!'),
+        CarDriveBackState.waiting => const Text('Drive Back'),
+      },
     );
 
     final selfParking = SingleChildScrollView(
@@ -438,7 +441,10 @@ class _ReadingsSetterState extends ConsumerState<ReadingsSetter> {
         children: [
           ElevatedButton(
             onPressed: Actions.handler(context, const StartRecordingIntent()) ?? () {},
-            child: const Text('Record Park'),
+            child: switch (ref.watch(recordingStateProvider)) {
+              CarRecordingState.notRecording => const Text('Record Park'),
+              CarRecordingState.recording => const Text('Stop Recording!'),
+            },
           ),
           ElevatedButton(
             onPressed: Actions.handler(context, const ReplayParkIntent()) ?? () {},

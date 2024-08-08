@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_car_sim/common/db.dart';
 import 'package:mobile_car_sim/common/provider.dart';
+import 'package:mobile_car_sim/common/shortcuts/actions.dart';
 import 'package:mobile_car_sim/models/client.dart';
 import 'package:mobile_car_sim/models/simulator.dart';
 import 'package:network_info_plus/network_info_plus.dart';
@@ -67,8 +68,9 @@ class _WifiDataCardState extends ConsumerState<WifiDataCard> {
     try {
       await Client.connect(_gateway!, port);
       ref.read(isConnectedProvider.notifier).state = true;
-      ref.read(isReceivingProvider.notifier).state = false;
+      ref.read(isReceivingProvider.notifier).state = true;
       ref.read(wheelAngleProvider.notifier).state = 0;
+      if (mounted) Actions.invoke(context, const SwitchReceivingIntent(true));
     } catch (e) {
       if (mounted) {
         await showDialog(

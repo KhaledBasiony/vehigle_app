@@ -22,41 +22,44 @@ class HoldDownButton extends StatefulWidget {
   State<HoldDownButton> createState() => _HoldDownButtonState();
 }
 
-class _HoldDownButtonState extends State<HoldDownButton> {
+mixin HoldDownHandler {
+  late final Duration? _setDuration;
   late Duration _duration;
   Timer? _timer;
 
-  @override
-  void initState() {
-    super.initState();
-    _initDuration();
+  void holdDownInit([Duration? duration]) {
+    _setDuration = duration;
+    holdDownStop();
   }
 
-  void _initDuration() {
-    _duration = widget.duration ?? Duration(milliseconds: Db.instance.read(holdDownDelayKey) ?? 500);
-  }
-
-  void _onTapDown(_) {
+  void holdDownStart(VoidCallback callback) {
     _timer?.cancel();
 
-    widget.callback();
+    callback();
     _timer = Timer.periodic(
       _duration,
       (_) {
-        widget.callback();
+        callback();
       },
     );
   }
 
-  void _onTapUp([dynamic _]) {
+  void holdDownStop() {
     _timer?.cancel();
-    _initDuration();
+    _duration = _setDuration ?? Duration(milliseconds: Db.instance.read(holdDownDelayKey) ?? 500);
+  }
+}
+
+class _HoldDownButtonState extends State<HoldDownButton> with HoldDownHandler {
+  @override
+  void initState() {
+    super.initState();
+    holdDownInit(widget.duration);
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
+  void _onTapDown(_) => holdDownStart(widget.callback);
+
+  void _onTapUp([dynamic _]) => holdDownStop();
 
   @override
   Widget build(BuildContext context) {

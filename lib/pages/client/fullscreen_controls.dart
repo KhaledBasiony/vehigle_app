@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -5,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_car_sim/common/provider.dart';
 import 'package:mobile_car_sim/common/shortcuts/actions.dart';
 import 'package:mobile_car_sim/common/theme.dart';
+import 'package:mobile_car_sim/common/widgets.dart';
 
 const _padding = 20.0;
 
@@ -255,9 +257,8 @@ class _Pedal extends StatefulWidget {
   State<_Pedal> createState() => _PedalState();
 }
 
-class _PedalState extends State<_Pedal> with SingleTickerProviderStateMixin {
+class _PedalState extends State<_Pedal> with SingleTickerProviderStateMixin, HoldDownHandler {
   late final AnimationController _controller;
-
   @override
   void initState() {
     super.initState();
@@ -265,6 +266,7 @@ class _PedalState extends State<_Pedal> with SingleTickerProviderStateMixin {
       vsync: this,
       duration: Durations.short3,
     );
+    holdDownInit();
   }
 
   @override
@@ -275,12 +277,13 @@ class _PedalState extends State<_Pedal> with SingleTickerProviderStateMixin {
 
   void _press([_]) {
     _controller.forward();
-    widget.onPress();
+    holdDownStart(widget.onPress);
   }
 
   void _release([_]) {
     _controller.reverse();
     widget.onRelease();
+    holdDownStop();
   }
 
   @override

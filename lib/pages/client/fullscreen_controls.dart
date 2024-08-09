@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile_car_sim/common/db.dart';
 import 'package:mobile_car_sim/common/provider.dart';
 import 'package:mobile_car_sim/common/shortcuts/actions.dart';
 import 'package:mobile_car_sim/common/theme.dart';
@@ -82,13 +83,6 @@ class _DrDriverControlsState extends ConsumerState<DrDriverControls> {
 
     final newCarWheelsAngle = _steeringWheelToCarWheels(newSteeringWheelAngle);
     ref.read(wheelAngleProvider.notifier).state = newCarWheelsAngle;
-
-    Actions.invoke(
-      context,
-      newSteeringWheelAngle > oldSteeringWheelAngle
-          ? TurnLeftIntent(value: newCarWheelsAngle)
-          : TurnRightIntent(value: newCarWheelsAngle),
-    );
   }
 
   void _resetAngle(_) {
@@ -120,6 +114,17 @@ class _DrDriverControlsState extends ConsumerState<DrDriverControls> {
 
   @override
   Widget build(BuildContext context) {
+    // invoke action only when wheel angle changes
+    ref.listen(wheelAngleProvider, (previous, next) {
+      final angleStep = Db.instance.read<int>(steeringAngleStep) ?? 1;
+      if (next.roundToBase(angleStep) == previous?.roundToBase(angleStep)) return;
+      Actions.invoke(
+        context,
+        next < (previous ?? 0)
+            ? TurnLeftIntent(value: next.roundToBase(angleStep))
+            : TurnRightIntent(value: next.roundToBase(angleStep)),
+      );
+    });
     final wheel = _ControlsConstraints(
       maxWidth: 110,
       onLayout: (width) {
@@ -382,5 +387,10 @@ double boundedValue({
         : value > upperBound
             ? upperBound
             : value;
+
+extension on num {
+  /// Rounds to a multiple of [step].
+  int roundToBase(int step) => (this / step).round() * step;
+}
 
 enum _GearPositions { reverse, drive }

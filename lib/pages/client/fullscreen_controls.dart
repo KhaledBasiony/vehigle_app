@@ -48,6 +48,7 @@ class DrDriverControls extends ConsumerStatefulWidget {
 class _DrDriverControlsState extends ConsumerState<DrDriverControls> {
   Offset _startOffset = Offset.zero;
   int _overlaps = 0;
+  DateTime? _lastSend;
 
   Duration _steeringDuration = Durations.short3;
 
@@ -94,6 +95,7 @@ class _DrDriverControlsState extends ConsumerState<DrDriverControls> {
       context,
       const TurnRightIntent(value: 0),
     );
+    _lastSend = DateTime.now();
   }
 
   void _pressAcceleration() {
@@ -118,6 +120,8 @@ class _DrDriverControlsState extends ConsumerState<DrDriverControls> {
     ref.listen(wheelAngleProvider, (previous, next) {
       final angleStep = Db.instance.read<int>(steeringAngleStep) ?? 1;
       if (next.roundToBase(angleStep) == previous?.roundToBase(angleStep)) return;
+      if ((_lastSend?.difference(DateTime.now()).abs() ?? Duration.zero) < Duration(milliseconds: 150)) return;
+      _lastSend = DateTime.now()
       Actions.invoke(
         context,
         next < (previous ?? 0)

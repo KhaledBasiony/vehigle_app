@@ -171,10 +171,10 @@ class MockServer {
       ];
     }
     clientSocket?.add(messageBytes);
-    cf.oneTime = rng.nextDouble() * 0.5 + 0.25;
-    cb.oneTime = rng.nextDouble() * 0.5 + 0.25;
-    lc.oneTime = rng.nextDouble() * 0.5 + 0.25;
-    rc.oneTime = rng.nextDouble() * 0.5 + 0.25;
+    cf.oneTime = (rng.nextDouble() * 0.5 + 0.25) * CarModel.maxReading;
+    cb.oneTime = (rng.nextDouble() * 0.5 + 0.25) * CarModel.maxReading;
+    lc.oneTime = (rng.nextDouble() * 0.5 + 0.25) * CarModel.maxReading;
+    rc.oneTime = (rng.nextDouble() * 0.5 + 0.25) * CarModel.maxReading;
     lf.oneTime = 0.0;
     rf.oneTime = 0.0;
     lb.oneTime = 0.0;

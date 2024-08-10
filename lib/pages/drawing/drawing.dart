@@ -168,14 +168,14 @@ class _MapDrawerState extends ConsumerState<MapDrawer> {
       if (ref.read(navigationStateProvider) == CarNavigationState.searching) {
         CarModel.instance.readingsHistory.addFirst(
           SensorOffsets.fromReadings(
-            frontLeft: (readings['LF'] as num? ?? 0).toDouble() * CarModel.maxReading,
-            frontCenter: (readings['CF'] as num? ?? 0).toDouble() * CarModel.maxReading,
-            frontRight: (readings['RF'] as num? ?? 0).toDouble() * CarModel.maxReading,
-            backLeft: (readings['LB'] as num? ?? 0).toDouble() * CarModel.maxReading,
-            backCenter: (readings['CB'] as num? ?? 0).toDouble() * CarModel.maxReading,
-            backRight: (readings['RB'] as num? ?? 0).toDouble() * CarModel.maxReading,
-            right: (readings['RC'] as num? ?? 0).toDouble() * CarModel.maxReading,
-            left: (readings['LC'] as num? ?? 0).toDouble() * CarModel.maxReading,
+            frontLeft: (readings['LF'] as num? ?? 0).toDouble(),
+            frontCenter: (readings['CF'] as num? ?? 0).toDouble(),
+            frontRight: (readings['RF'] as num? ?? 0).toDouble(),
+            backLeft: (readings['LB'] as num? ?? 0).toDouble(),
+            backCenter: (readings['CB'] as num? ?? 0).toDouble(),
+            backRight: (readings['RB'] as num? ?? 0).toDouble(),
+            right: (readings['RC'] as num? ?? 0).toDouble(),
+            left: (readings['LC'] as num? ?? 0).toDouble(),
           ),
         );
         carLocation = null;

@@ -24,10 +24,43 @@ class Db {
       write(cForwardButton, 'f'.codeUnits);
     }
     if (read(cBackwardsButton) == null) {
-      write(cBackwardsButton, 'r'.codeUnits);
+      write(cBackwardsButton, 'b'.codeUnits);
     }
     if (read(cBrakesButton) == null) {
-      write(cBrakesButton, 'b'.codeUnits);
+      write(cBrakesButton, 's'.codeUnits);
+    }
+    if (read(cAccelerateButton) == null) {
+      write(cAccelerateButton, 'n'.codeUnits);
+    }
+    if (read(cDecelerateButton) == null) {
+      write(cDecelerateButton, 'm'.codeUnits);
+    }
+    if (read(cNavigateButton) == null) {
+      write(cNavigateButton, 'v'.codeUnits);
+    }
+    if (read(cParallelButton) == null) {
+      write(cParallelButton, 'w'.codeUnits);
+    }
+    if (read(cPerpendicularButton) == null) {
+      write(cPerpendicularButton, 'q'.codeUnits);
+    }
+    if (read(cDriveBackButton) == null) {
+      write(cDriveBackButton, 'd'.codeUnits);
+    }
+    if (read(cRecordButton) == null) {
+      write(cRecordButton, 'r'.codeUnits);
+    }
+    if (read(cReplayButton) == null) {
+      write(cReplayButton, 'a'.codeUnits);
+    }
+    if (read(steeringAngleStep) == null) {
+      write(steeringAngleStep, 5);
+    }
+    if (read(useJoystick) == null) {
+      write(useJoystick, false);
+    }
+    if (read(cExpectJson) == null) {
+      write(cExpectJson, true);
     }
   }
 

@@ -48,9 +48,14 @@ class _ButtonsCommandsEditor extends StatelessWidget {
                   isChangedProvider: _navigateCommandChangedProvider,
                 ),
                 _ButtonCommandEntry(
-                  title: 'Park Button',
-                  dbKey: cParkButton,
-                  isChangedProvider: _parkCommandChangedProvider,
+                  title: 'Parallel Park Button',
+                  dbKey: cParallelButton,
+                  isChangedProvider: _parallelCommandChangedProvider,
+                ),
+                _ButtonCommandEntry(
+                  title: 'Perpendicular Button',
+                  dbKey: cPerpendicularButton,
+                  isChangedProvider: _perpendicularCommandChangedProvider,
                 ),
                 _ButtonCommandEntry(
                   title: 'Drive Back Button',

@@ -129,7 +129,10 @@ class ParkAction extends Action<ParkIntent> {
 
   @override
   Object? invoke(ParkIntent intent) {
-    final command = Db.instance.read<List<int>>(cParkButton);
+    final command = switch (intent.type) {
+      ParkingType.parallel => Db.instance.read<List<int>>(cParallelButton),
+      ParkingType.perpendicular => Db.instance.read<List<int>>(cPerpendicularButton),
+    };
     if (command != null) Client.instance.send(command);
     MockServer.instance.carState.base = 1;
 

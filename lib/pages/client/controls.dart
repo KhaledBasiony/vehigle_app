@@ -406,6 +406,46 @@ class _ReadingsSetterState extends ConsumerState<ReadingsSetter> {
 
   @override
   Widget build(BuildContext context) {
+    final autoParkingSelector = Consumer(
+      builder: (context, ref, child) => ref.watch(_selectParking)
+          ? Card(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      Actions.invoke(context, const ParkIntent(type: ParkingType.parallel));
+                      ref.read(_selectParking.notifier).state = false;
+                    },
+                    child: const Text('Parallel'),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: ElevatedButton(
+                      onPressed: () => ref.read(_selectParking.notifier).state = false,
+                      child: Icon(
+                        Icons.close_rounded,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Actions.invoke(context, const ParkIntent(type: ParkingType.perpendicular));
+                      ref.read(_selectParking.notifier).state = false;
+                    },
+                    child: const Text('Perpendicular'),
+                  )
+                ],
+              ),
+            )
+          : ElevatedButton(
+              onPressed: () => ref.read(_selectParking.notifier).state = true,
+              child: const Text('Auto Park'),
+            ),
+    );
+
     final parkingStates = SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
@@ -418,10 +458,7 @@ class _ReadingsSetterState extends ConsumerState<ReadingsSetter> {
                 },
             child: const Text('Navigate'),
           ),
-          ElevatedButton(
-            onPressed: Actions.handler(context, const ParkIntent()) ?? () {},
-            child: const Text('Auto Park'),
-          ),
+          autoParkingSelector,
         ],
       ),
     );
@@ -504,3 +541,5 @@ class _ReadingsSetterState extends ConsumerState<ReadingsSetter> {
 extension on double {
   roundToNearest(int n) => (this / n).round() * n;
 }
+
+final _selectParking = StateProvider<bool>((ref) => false);

@@ -400,7 +400,9 @@ final _decelerateCommandChangedProvider = StateProvider<bool>((ref) => false);
 
 final _navigateCommandChangedProvider = StateProvider<bool>((ref) => false);
 
-final _parkCommandChangedProvider = StateProvider<bool>((ref) => false);
+final _parallelCommandChangedProvider = StateProvider<bool>((ref) => false);
+
+final _perpendicularCommandChangedProvider = StateProvider<bool>((ref) => false);
 
 final _driveBackCommandChangedProvider = StateProvider<bool>((ref) => false);
 

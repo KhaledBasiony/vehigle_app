@@ -41,8 +41,14 @@ class NavigateIntent extends Intent {
 }
 
 class ParkIntent extends Intent {
-  const ParkIntent();
+  const ParkIntent({
+    required this.type,
+  });
+
+  final ParkingType type;
 }
+
+enum ParkingType { parallel, perpendicular }
 
 class DriveBackIntent extends Intent {
   const DriveBackIntent();

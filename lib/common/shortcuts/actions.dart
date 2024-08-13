@@ -51,6 +51,30 @@ class StopAction extends Action<StopIntent> {
   }
 }
 
+class AccelerateAction extends Action<AccelerateIntent> {
+  AccelerateAction({required this.ref});
+
+  final WidgetRef ref;
+
+  @override
+  Object? invoke(AccelerateIntent intent) {
+    Client.instance.send(Db.instance.read<List<int>>(cAccelerateButton) ?? []);
+    return null;
+  }
+}
+
+class DecelerateAction extends Action<DecelerateIntent> {
+  DecelerateAction({required this.ref});
+
+  final WidgetRef ref;
+
+  @override
+  Object? invoke(DecelerateIntent intent) {
+    Client.instance.send(Db.instance.read<List<int>>(cDecelerateButton) ?? []);
+    return null;
+  }
+}
+
 class TurnLeftAction extends Action<TurnLeftIntent> {
   TurnLeftAction({required this.ref});
 

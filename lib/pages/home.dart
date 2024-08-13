@@ -90,6 +90,8 @@ class _HomePageState extends ConsumerState<HomePage> with SingleTickerProviderSt
       TurnLeftIntent: TurnLeftAction(ref: ref),
       TurnRightIntent: TurnRightAction(ref: ref),
       StopIntent: StopAction(ref: ref),
+      AccelerateIntent: AccelerateAction(ref: ref),
+      DecelerateIntent: DecelerateAction(ref: ref),
       NavigateIntent: NavigateAction(),
       ParkIntent: ParkAction(),
       DriveBackIntent: DriveBackAction(ref: ref),

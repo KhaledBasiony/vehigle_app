@@ -454,6 +454,16 @@ class _ReadingsSetterState extends ConsumerState<ReadingsSetter> {
       ),
     );
 
+    final accelerateButton = ElevatedButton(
+      onPressed: Actions.handler(context, const AccelerateIntent()) ?? () {},
+      child: const Icon(Icons.arrow_upward_rounded),
+    );
+
+    final decelerateButton = ElevatedButton(
+      onPressed: Actions.handler(context, const DecelerateIntent()) ?? () {},
+      child: const Icon(Icons.arrow_downward_rounded),
+    );
+
     final stateSetter = Card(
       elevation: 4,
       child: Padding(
@@ -462,9 +472,16 @@ class _ReadingsSetterState extends ConsumerState<ReadingsSetter> {
           children: [
             const ListTile(title: Center(child: Text('Car States'))),
             parkingStates,
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: driveBack,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                decelerateButton,
+                Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: driveBack,
+                ),
+                accelerateButton,
+              ],
             ),
             selfParking,
           ],

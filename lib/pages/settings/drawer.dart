@@ -394,6 +394,10 @@ final _backwardsCommandChangedProvider = StateProvider<bool>((ref) => false);
 
 final _brakesCommandChangedProvider = StateProvider<bool>((ref) => false);
 
+final _accelerateCommandChangedProvider = StateProvider<bool>((ref) => false);
+
+final _decelerateCommandChangedProvider = StateProvider<bool>((ref) => false);
+
 final _navigateCommandChangedProvider = StateProvider<bool>((ref) => false);
 
 final _parkCommandChangedProvider = StateProvider<bool>((ref) => false);

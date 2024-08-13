@@ -33,6 +33,16 @@ class _ButtonsCommandsEditor extends StatelessWidget {
                   isChangedProvider: _brakesCommandChangedProvider,
                 ),
                 _ButtonCommandEntry(
+                  title: 'Accelerate Button',
+                  dbKey: cAccelerateButton,
+                  isChangedProvider: _accelerateCommandChangedProvider,
+                ),
+                _ButtonCommandEntry(
+                  title: 'Decelerate Button',
+                  dbKey: cDecelerateButton,
+                  isChangedProvider: _decelerateCommandChangedProvider,
+                ),
+                _ButtonCommandEntry(
                   title: 'Navigate Button',
                   dbKey: cNavigateButton,
                   isChangedProvider: _navigateCommandChangedProvider,

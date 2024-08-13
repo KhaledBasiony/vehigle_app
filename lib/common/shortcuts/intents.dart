@@ -28,6 +28,14 @@ class StopIntent extends Intent {
   const StopIntent();
 }
 
+class AccelerateIntent extends Intent {
+  const AccelerateIntent();
+}
+
+class DecelerateIntent extends Intent {
+  const DecelerateIntent();
+}
+
 class NavigateIntent extends Intent {
   const NavigateIntent();
 }

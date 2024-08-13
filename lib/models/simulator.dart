@@ -190,8 +190,8 @@ class MockServer {
       final _ = switch (byte) {
         >= 0 && <= 80 => _steer(byte),
         == 0x0066 /* f */ => _moveForward(),
-        == 0x0062 /* b */ => _brakes(),
-        == 0x0072 /* r */ => _moveBackwards(),
+        == 0x0062 /* b */ => _moveBackwards(),
+        == 0x0073 /* s */ => _brakes(),
         _ => null,
       };
     }

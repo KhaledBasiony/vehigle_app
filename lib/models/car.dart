@@ -9,7 +9,7 @@ class CarModel {
   static CarModel? _instance;
   static CarModel get instance => _instance ??= CarModel._();
 
-  static const maxHistory = 50;
+  static get maxHistory => Db.instance.read<int>(maxSensorHistory) ?? 150;
   static get maxReading => Db.instance.read<double>(maxSensorsReading) ?? 200;
 
   final double width = 20;

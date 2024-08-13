@@ -131,6 +131,20 @@ class SettingsEditor extends StatelessWidget {
       initialValue: '*'.codeUnits.first,
     );
 
+    final shouldFadeSwitch = _SwitchConfig(
+      labelText: 'Fade History',
+      dbKey: shouldFadeHistory,
+      isChangedProvider: _shouldFadeHistoryChangedProvider,
+    );
+
+    final maxReadingHistoryField = _TextConfig(
+      labelText: 'Max History',
+      dbKey: maxSensorHistory,
+      isChangedProvider: _maxSensorHistoryChangedProvider,
+      valueParser: int.parse,
+      initialValue: 100,
+    );
+
     return SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -177,6 +191,10 @@ class SettingsEditor extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           controlsSwitcher,
+          const SizedBox(height: 10),
+          shouldFadeSwitch,
+          const SizedBox(height: 10),
+          maxReadingHistoryField,
           const SizedBox(height: 10),
           themeSwitcher,
           const SizedBox(height: 10),
@@ -355,6 +373,10 @@ final _steeringAngleChangedProvider = StateProvider<bool>((ref) => false);
 final _maxEncoderReadingChangedProvider = StateProvider<bool>((ref) => false);
 
 final _maxSensorReadingChangedProvider = StateProvider<bool>((ref) => false);
+
+final _maxSensorHistoryChangedProvider = StateProvider<bool>((ref) => false);
+
+final _shouldFadeHistoryChangedProvider = StateProvider<bool>((ref) => false);
 
 final _endDelimiterChangedProvider = StateProvider<bool>((ref) => false);
 

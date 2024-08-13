@@ -5,6 +5,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile_car_sim/common/db.dart';
 import 'package:mobile_car_sim/common/provider.dart';
 import 'package:mobile_car_sim/common/theme.dart';
 import 'package:mobile_car_sim/models/car.dart';
@@ -406,6 +407,7 @@ class MapPainter extends CustomPainter {
 
   Offset centerOffset;
   final bool myShouldRepaint;
+  final shouldFade = Db.instance.read<bool>(shouldFadeHistory) ?? false;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -419,7 +421,11 @@ class MapPainter extends CustomPainter {
     for (final element in CarModel.instance.readingsHistory.indexed) {
       final i = element.$1;
       final reading = element.$2;
-      paint.color = baseColor.withAlpha(255 - (i / CarModel.instance.readingsHistory.length * 255).round());
+      if (shouldFade) {
+        paint.color = baseColor.withAlpha(255 - (i / CarModel.instance.readingsHistory.length * 255).round());
+      } else {
+        paint.color = baseColor;
+      }
 
       // Iterate over UltraSonic values in a single reading element.
       for (var readingLocation in reading
